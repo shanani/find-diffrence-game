@@ -63,7 +63,7 @@ class GameAudio(private val context: Context) {
             music?.let { if (!it.isPlaying) it.start() }
             return
         }
-        music = MediaPlayer.create(context, R.raw.music_loop)?.apply {
+        music = MediaPlayer.create(context, R.raw.mozart_nachtmusik)?.apply {
             isLooping = true
             setVolume(musicVolume, musicVolume)
             setAudioAttributes(

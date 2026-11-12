@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -97,6 +98,15 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel(), onBack: () -> Uni
             onClick = { showResetConfirm = true },
             colors = ButtonDefaults.buttonColors(containerColor = DangerRed)
         ) { Text("Reset All Player Scores") }
+
+        Spacer(Modifier.height(24.dp))
+        Text(
+            "Music credit: W. A. Mozart - \"Eine kleine Nachtmusik\" (I. Allegro), " +
+                "performed by the Advent Chamber Orchestra. Licensed CC BY-SA 2.0 " +
+                "via Wikimedia Commons.",
+            fontSize = 11.sp,
+            color = Color.White.copy(alpha = 0.5f)
+        )
     }
 
     if (showResetConfirm) {
