@@ -37,7 +37,7 @@ import com.oddduel.game.ui.theme.DangerRed
 import com.oddduel.game.ui.theme.NeonCyan
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel = viewModel(), onBack: () -> Unit) {
+fun SettingsScreen(viewModel: SettingsViewModel = viewModel(), onBack: () -> Unit, onAbout: () -> Unit) {
     val settings by viewModel.settings.collectAsState()
     var showResetConfirm by remember { mutableStateOf(false) }
 
@@ -98,6 +98,9 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel(), onBack: () -> Uni
             onClick = { showResetConfirm = true },
             colors = ButtonDefaults.buttonColors(containerColor = DangerRed)
         ) { Text("Reset All Player Scores") }
+
+        Spacer(Modifier.height(16.dp))
+        Button(onClick = onAbout) { Text("About") }
 
         Spacer(Modifier.height(24.dp))
         Text(

@@ -21,6 +21,7 @@ import com.oddduel.game.audio.GameAudio
 import com.oddduel.game.audio.Sfx
 import com.oddduel.game.data.GameSettings
 import com.oddduel.game.data.SettingsRepository
+import com.oddduel.game.ui.screens.about.AboutScreen
 import com.oddduel.game.ui.screens.accounts.AccountsScreen
 import com.oddduel.game.ui.screens.game.QuickPlayScreen
 import com.oddduel.game.ui.screens.home.HomeScreen
@@ -37,6 +38,7 @@ private object Routes {
     const val TOURNAMENT = "tournament"
     const val ACCOUNTS = "accounts"
     const val SETTINGS = "settings"
+    const val ABOUT = "about"
 }
 
 @Composable
@@ -78,7 +80,13 @@ fun OddDuelApp() {
                 AccountsScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.SETTINGS) {
-                SettingsScreen(onBack = { navController.popBackStack() })
+                SettingsScreen(
+                    onBack = { navController.popBackStack() },
+                    onAbout = { navController.navigate(Routes.ABOUT) }
+                )
+            }
+            composable(Routes.ABOUT) {
+                AboutScreen(onBack = { navController.popBackStack() })
             }
         }
     }
