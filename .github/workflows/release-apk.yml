@@ -20,15 +20,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ubuntu-latest runners ship with the Android SDK (platforms, build-tools,
+      # accepted licenses) preinstalled; Gradle/AGP auto-downloads any specific
+      # missing version on demand, so no separate SDK setup action is needed -
+      # android-actions/setup-android also only works at all if the long-gone
+      # legacy 'tools' package is still fetchable upstream, which it is not.
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
           cache: gradle
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
