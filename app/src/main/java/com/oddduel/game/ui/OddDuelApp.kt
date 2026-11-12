@@ -8,12 +8,15 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.oddduel.game.BuildConfig
 import com.oddduel.game.audio.GameAudio
 import com.oddduel.game.audio.Sfx
 import com.oddduel.game.data.GameSettings
@@ -23,6 +26,10 @@ import com.oddduel.game.ui.screens.game.QuickPlayScreen
 import com.oddduel.game.ui.screens.home.HomeScreen
 import com.oddduel.game.ui.screens.settings.SettingsScreen
 import com.oddduel.game.ui.screens.tournament.TournamentScreen
+import com.oddduel.game.update.UpdateAvailableDialog
+import com.oddduel.game.update.UpdateChecker
+import com.oddduel.game.update.UpdateInfo
+import com.oddduel.game.update.UpdateInstaller
 
 private object Routes {
     const val HOME = "home"
@@ -43,6 +50,11 @@ fun OddDuelApp() {
 
     LaunchedEffect(settings.musicEnabled, settings.sfxEnabled, settings.musicVolume, settings.sfxVolume) {
         audio.applySettings(settings.musicEnabled, settings.sfxEnabled, settings.musicVolume, settings.sfxVolume)
+    }
+
+    var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
+    LaunchedEffect(Unit) {
+        updateInfo = UpdateChecker.checkForUpdate(BuildConfig.VERSION_CODE)
     }
 
     val navController = rememberNavController()
@@ -69,5 +81,16 @@ fun OddDuelApp() {
                 SettingsScreen(onBack = { navController.popBackStack() })
             }
         }
+    }
+
+    updateInfo?.let { info ->
+        UpdateAvailableDialog(
+            info = info,
+            onUpdate = {
+                UpdateInstaller.downloadAndInstall(context, info)
+                updateInfo = null
+            },
+            onDismiss = { updateInfo = null }
+        )
     }
 }
