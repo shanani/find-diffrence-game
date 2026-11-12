@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- three matching shapes -->
+    <path
+        android:pathData="M30,38 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M60,38 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0"
+        android:fillColor="#FFFFFF" />
+    <!-- the odd one, highlighted color, slightly offset -->
+    <path
+        android:pathData="M45,64 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0"
+        android:fillColor="#FFD23F" />
+    <!-- magnifier ring around the odd one -->
+    <path
+        android:pathData="M55,74 m-17,0 a17,17 0 1,0 34,0 a17,17 0 1,0 -34,0"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M67,86 L77,96"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round" />
+</vector>

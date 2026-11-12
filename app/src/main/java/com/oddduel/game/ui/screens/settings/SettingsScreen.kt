@@ -1,0 +1,131 @@
+package com.oddduel.game.ui.screens.settings
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.oddduel.game.ui.theme.DangerRed
+import com.oddduel.game.ui.theme.NeonCyan
+
+@Composable
+fun SettingsScreen(viewModel: SettingsViewModel = viewModel(), onBack: () -> Unit) {
+    val settings by viewModel.settings.collectAsState()
+    var showResetConfirm by remember { mutableStateOf(false) }
+
+    Column(Modifier.fillMaxSize().padding(20.dp).verticalScroll(rememberScrollState())) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = "Back") }
+            Text("Settings", fontWeight = FontWeight.Black, fontSize = 26.sp)
+        }
+        Spacer(Modifier.height(16.dp))
+
+        SectionTitle("Round timeout: ${settings.roundTimeoutSeconds}s")
+        Slider(
+            value = settings.roundTimeoutSeconds.toFloat(),
+            onValueChange = { viewModel.setTimeout(it.toInt()) },
+            valueRange = 15f..120f,
+            steps = 20
+        )
+
+        Spacer(Modifier.height(16.dp))
+        SectionTitle("Grid columns: ${settings.gridCols}")
+        Slider(
+            value = settings.gridCols.toFloat(),
+            onValueChange = { viewModel.setGridSize(it.toInt(), settings.gridRows) },
+            valueRange = 2f..8f,
+            steps = 5
+        )
+
+        SectionTitle("Grid rows: ${settings.gridRows}")
+        Slider(
+            value = settings.gridRows.toFloat(),
+            onValueChange = { viewModel.setGridSize(settings.gridCols, it.toInt()) },
+            valueRange = 2f..8f,
+            steps = 5
+        )
+        Text("${settings.gridCols * settings.gridRows} tiles per side", fontSize = 12.sp, color = NeonCyan)
+
+        Spacer(Modifier.height(20.dp))
+        ToggleRow(
+            label = "Music",
+            checked = settings.musicEnabled,
+            onCheckedChange = { viewModel.setMusicEnabled(it) }
+        )
+        if (settings.musicEnabled) {
+            Slider(value = settings.musicVolume, onValueChange = { viewModel.setMusicVolume(it) })
+        }
+
+        ToggleRow(
+            label = "Sound effects",
+            checked = settings.sfxEnabled,
+            onCheckedChange = { viewModel.setSfxEnabled(it) }
+        )
+        if (settings.sfxEnabled) {
+            Slider(value = settings.sfxVolume, onValueChange = { viewModel.setSfxVolume(it) })
+        }
+
+        Spacer(Modifier.height(24.dp))
+        Button(
+            onClick = { showResetConfirm = true },
+            colors = ButtonDefaults.buttonColors(containerColor = DangerRed)
+        ) { Text("Reset All Player Scores") }
+    }
+
+    if (showResetConfirm) {
+        AlertDialog(
+            onDismissRequest = { showResetConfirm = false },
+            title = { Text("Reset all scores?") },
+            text = { Text("Every saved player's best score, wins and match count will be set back to zero. This can't be undone.") },
+            confirmButton = {
+                Button(onClick = {
+                    viewModel.resetAllScores()
+                    showResetConfirm = false
+                }) { Text("Reset") }
+            },
+            dismissButton = {
+                Button(onClick = { showResetConfirm = false }) { Text("Cancel") }
+            }
+        )
+    }
+}
+
+@Composable
+private fun SectionTitle(text: String) {
+    Text(text, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+}
+
+@Composable
+private fun ToggleRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        Text(label, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
