@@ -1,5 +1,6 @@
 package com.oddduel.game.ui
 
+import android.app.Activity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -33,6 +34,7 @@ import com.oddduel.game.update.UpdateChecker
 import com.oddduel.game.update.UpdateInfo
 import com.oddduel.game.update.UpdateInstaller
 import kotlinx.coroutines.launch
+import kotlin.system.exitProcess
 
 private object Routes {
     const val HOME = "home"
@@ -70,7 +72,11 @@ fun OddDuelApp() {
                     onQuickPlay = { audio.play(Sfx.CLICK); navController.navigate(Routes.QUICK_PLAY) },
                     onTournament = { audio.play(Sfx.CLICK); navController.navigate(Routes.TOURNAMENT) },
                     onAccounts = { audio.play(Sfx.CLICK); navController.navigate(Routes.ACCOUNTS) },
-                    onSettings = { audio.play(Sfx.CLICK); navController.navigate(Routes.SETTINGS) }
+                    onSettings = { audio.play(Sfx.CLICK); navController.navigate(Routes.SETTINGS) },
+                    onExitApp = {
+                        (context as? Activity)?.finishAffinity()
+                        exitProcess(0)
+                    }
                 )
             }
             composable(Routes.QUICK_PLAY) {
