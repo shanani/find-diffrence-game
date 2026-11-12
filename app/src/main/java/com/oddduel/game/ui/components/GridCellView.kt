@@ -73,36 +73,35 @@ fun OddGridCell(style: CellStyle, highlight: Boolean, enabled: Boolean, onTap: (
 private fun ShapeCanvas(shape: ShapeKind, color: Color, renderStyle: RenderStyle) {
     Canvas(modifier = Modifier.fillMaxSize()) {
         val w = size.minDimension * 0.62f
-        val path = buildShapePath(shape, w)
-        val offset = Offset((size.width - w) / 2f, (size.height - w) / 2f)
-        translate(left = offset.x, top = offset.y) {
-            if (renderStyle == RenderStyle.FILLED) {
-                drawPath(path, color = color)
-            } else {
-                drawPath(path, color = color, style = Stroke(width = w * 0.09f))
-            }
+        val offsetX = (size.width - w) / 2f
+        val offsetY = (size.height - w) / 2f
+        val path = buildShapePath(shape, w, offsetX, offsetY)
+        if (renderStyle == RenderStyle.FILLED) {
+            drawPath(path, color = color)
+        } else {
+            drawPath(path, color = color, style = Stroke(width = w * 0.09f))
         }
     }
 }
 
-private fun buildShapePath(shape: ShapeKind, s: Float): Path = Path().apply {
+private fun buildShapePath(shape: ShapeKind, s: Float, ox: Float, oy: Float): Path = Path().apply {
     when (shape) {
-        ShapeKind.CIRCLE -> addOval(androidx.compose.ui.geometry.Rect(0f, 0f, s, s))
-        ShapeKind.SQUARE -> addRect(androidx.compose.ui.geometry.Rect(0f, 0f, s, s))
+        ShapeKind.CIRCLE -> addOval(androidx.compose.ui.geometry.Rect(ox, oy, ox + s, oy + s))
+        ShapeKind.SQUARE -> addRect(androidx.compose.ui.geometry.Rect(ox, oy, ox + s, oy + s))
         ShapeKind.DIAMOND -> {
-            moveTo(s / 2f, 0f); lineTo(s, s / 2f); lineTo(s / 2f, s); lineTo(0f, s / 2f); close()
+            moveTo(ox + s / 2f, oy); lineTo(ox + s, oy + s / 2f); lineTo(ox + s / 2f, oy + s); lineTo(ox, oy + s / 2f); close()
         }
-        ShapeKind.TRIANGLE -> polygon(s, 3, startAngleDeg = -90f)
-        ShapeKind.PENTAGON -> polygon(s, 5, startAngleDeg = -90f)
-        ShapeKind.HEXAGON -> polygon(s, 6, startAngleDeg = -90f)
-        ShapeKind.STAR -> star(s, 5)
+        ShapeKind.TRIANGLE -> polygon(s, 3, startAngleDeg = -90f, ox = ox, oy = oy)
+        ShapeKind.PENTAGON -> polygon(s, 5, startAngleDeg = -90f, ox = ox, oy = oy)
+        ShapeKind.HEXAGON -> polygon(s, 6, startAngleDeg = -90f, ox = ox, oy = oy)
+        ShapeKind.STAR -> star(s, 5, ox = ox, oy = oy)
     }
 }
 
-private fun Path.polygon(s: Float, sides: Int, startAngleDeg: Float) {
+private fun Path.polygon(s: Float, sides: Int, startAngleDeg: Float, ox: Float, oy: Float) {
     val r = s / 2f
-    val cx = r
-    val cy = r
+    val cx = ox + r
+    val cy = oy + r
     for (i in 0 until sides) {
         val angle = Math.toRadians((startAngleDeg + i * 360f / sides).toDouble())
         val x = cx + r * cos(angle).toFloat()
@@ -112,11 +111,11 @@ private fun Path.polygon(s: Float, sides: Int, startAngleDeg: Float) {
     close()
 }
 
-private fun Path.star(s: Float, points: Int) {
+private fun Path.star(s: Float, points: Int, ox: Float, oy: Float) {
     val outerR = s / 2f
     val innerR = outerR * 0.42f
-    val cx = outerR
-    val cy = outerR
+    val cx = ox + outerR
+    val cy = oy + outerR
     val totalPoints = points * 2
     for (i in 0 until totalPoints) {
         val r = if (i % 2 == 0) outerR else innerR
