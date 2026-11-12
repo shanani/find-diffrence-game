@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -63,29 +64,35 @@ fun TournamentSetupScreen(
             IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = "Back") }
             Text("Tournament Setup", fontWeight = FontWeight.Black, fontSize = 24.sp)
         }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(4.dp))
         Text("Any number of players can join - they'll be bracketed into head-to-head rounds until one champion remains.", fontSize = 13.sp)
         Spacer(Modifier.height(16.dp))
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Column(Modifier.weight(1f)) {
+        // Three full-height columns so everything - including the Start button -
+        // stays on screen at once on a wide landscape display, no scrolling needed.
+        Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(Modifier.weight(1f).fillMaxHeight()) {
                 Text("Add a guest player", fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(value = guestName, onValueChange = { guestName = it }, label = { Text("Guest name") }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(8.dp))
-                AvatarPicker(selectedIndex = avatarIndex, onSelect = { avatarIndex = it }, modifier = Modifier.height(140.dp))
+                AvatarPicker(selectedIndex = avatarIndex, onSelect = { avatarIndex = it }, modifier = Modifier.weight(1f).fillMaxWidth())
                 Spacer(Modifier.height(8.dp))
-                Button(onClick = {
-                    val label = guestName.trim().ifEmpty { "Guest ${roster.size + 1}" }
-                    roster.add(PlayerProfile.Guest(label, avatarIndex))
-                    guestName = ""
-                    avatarIndex = (avatarIndex + 1) % AvatarCatalog.all.size
-                }) { Text("Add Guest") }
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        val label = guestName.trim().ifEmpty { "Guest ${roster.size + 1}" }
+                        roster.add(PlayerProfile.Guest(label, avatarIndex))
+                        guestName = ""
+                        avatarIndex = (avatarIndex + 1) % AvatarCatalog.all.size
+                    }
+                ) { Text("Add Guest") }
+            }
 
-                Spacer(Modifier.height(16.dp))
+            Column(Modifier.weight(1f).fillMaxHeight()) {
                 Text("Add a saved player", fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
-                LazyColumn(Modifier.height(140.dp)) {
+                LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     items(users, key = { it.id }) { user ->
                         Row(
                             Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -101,10 +108,10 @@ fun TournamentSetupScreen(
                 }
             }
 
-            Column(Modifier.weight(1f)) {
+            Column(Modifier.weight(1f).fillMaxHeight()) {
                 Text("Roster (${roster.size})", fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
-                LazyColumn(Modifier.height(320.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     items(roster.size) { index ->
                         val player = roster[index]
                         val avatar = AvatarCatalog.get(player.avatarIndex)
@@ -121,6 +128,7 @@ fun TournamentSetupScreen(
                 }
                 Spacer(Modifier.height(12.dp))
                 Button(
+                    modifier = Modifier.fillMaxWidth(),
                     onClick = { onStart(roster.toList()) },
                     enabled = roster.size >= 2
                 ) { Text(if (roster.size < 2) "Add at least 2 players" else "Start Tournament (${roster.size})") }

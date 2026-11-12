@@ -6,13 +6,18 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,8 +35,22 @@ import com.oddduel.game.ui.components.toColor
 import com.oddduel.game.ui.theme.BgDeep
 import com.oddduel.game.ui.theme.NeonYellow
 
+/**
+ * Shown right after a single duel ends. The caller decides what the two action
+ * buttons actually do - rematch-and-stay (quick play) and next-round/view-bracket
+ * (tournament) both reuse this same winner reveal, just with different actions.
+ */
 @Composable
-fun RoundResultScreen(winner: PlayerProfile, leftScore: Int, rightScore: Int, isFinalChampion: Boolean, onContinue: () -> Unit) {
+fun RoundResultScreen(
+    winner: PlayerProfile,
+    leftScore: Int,
+    rightScore: Int,
+    primaryLabel: String,
+    onPrimary: () -> Unit,
+    secondaryLabel: String? = null,
+    onSecondary: (() -> Unit)? = null,
+    headline: String = "ROUND WINNER"
+) {
     val avatar = AvatarCatalog.get(winner.avatarIndex)
     val infinite = rememberInfiniteTransition(label = "trophyBounce")
     val bounce by infinite.animateFloat(
@@ -41,15 +60,23 @@ fun RoundResultScreen(winner: PlayerProfile, leftScore: Int, rightScore: Int, is
     )
     Box(Modifier.fillMaxSize().background(BgDeep), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(if (isFinalChampion) "🏆 CHAMPION! 🏆" else "ROUND WINNER", color = NeonYellow, fontWeight = FontWeight.Black, fontSize = 30.sp)
+            Text(headline, color = NeonYellow, fontWeight = FontWeight.Black, fontSize = 30.sp)
             Box(
                 Modifier.padding(24.dp).size(110.dp).scale(bounce).clip(CircleShape).background(avatar.colorHex.toColor()),
                 contentAlignment = Alignment.Center
             ) { Text(avatar.emoji, fontSize = 54.sp) }
             Text(winner.displayName, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 26.sp)
             Text("$leftScore  -  $rightScore", color = Color.White.copy(alpha = 0.7f), fontSize = 18.sp)
-            androidx.compose.foundation.layout.Spacer(Modifier.size(24.dp))
-            Button(onClick = onContinue) { Text(if (isFinalChampion) "Back to Home" else "Next Round") }
+            Spacer(Modifier.size(24.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Button(onClick = onPrimary) { Text(primaryLabel) }
+                if (secondaryLabel != null && onSecondary != null) {
+                    OutlinedButton(
+                        onClick = onSecondary,
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                    ) { Text(secondaryLabel) }
+                }
+            }
         }
     }
 }
