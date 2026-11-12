@@ -24,6 +24,22 @@ object UpdateInstaller {
 
     suspend fun downloadAndInstall(context: Context, info: UpdateInfo) {
         val appContext = context.applicationContext
+
+        // Check this BEFORE downloading ~10+ MB: no point fetching the APK if we
+        // can't even launch the installer for it yet, and this failing silently is
+        // exactly the "nothing happens" symptom we're trying to eliminate.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !appContext.packageManager.canRequestPackageInstalls()) {
+            toast(appContext, "Allow \"install unknown apps\" for this app on the next screen, then tap Update Now again")
+            try {
+                val settingsIntent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${appContext.packageName}"))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                withContext(Dispatchers.Main) { appContext.startActivity(settingsIntent) }
+            } catch (e: Exception) {
+                toast(appContext, "Couldn't open the permission screen: ${e.message ?: e.javaClass.simpleName}")
+            }
+            return
+        }
+
         toast(appContext, "Downloading update …")
 
         val destDir = appContext.getExternalFilesDir("updates")
@@ -33,7 +49,7 @@ object UpdateInstaller {
         }
         val destFile = File(destDir, "update.apk")
 
-        val error = withContext(Dispatchers.IO) {
+        val downloadError = withContext(Dispatchers.IO) {
             try {
                 if (destFile.exists()) destFile.delete()
                 val connection = (URL(info.downloadUrl).openConnection() as HttpURLConnection).apply {
@@ -57,13 +73,15 @@ object UpdateInstaller {
             }
         }
 
-        if (error != null) {
-            toast(appContext, "Update download failed: $error")
+        if (downloadError != null) {
+            toast(appContext, "Update download failed: $downloadError")
             return
         }
 
-        toast(appContext, "Download complete - opening installer")
-        promptInstall(appContext, destFile)
+        val installError = withContext(Dispatchers.Main) { launchInstaller(appContext, destFile) }
+        if (installError != null) {
+            toast(appContext, "Couldn't open the install screen: $installError")
+        }
     }
 
     private suspend fun toast(context: Context, message: String) {
@@ -72,23 +90,19 @@ object UpdateInstaller {
         }
     }
 
-    private fun promptInstall(context: Context, apkFile: File) {
-        if (!apkFile.exists()) return
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
-            // One-time system setting the user must grant before any install-from-APK
-            // can proceed; send them there, then they can tap the downloaded APK again.
-            val settingsIntent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${context.packageName}"))
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(settingsIntent)
-            return
+    /** Returns null on success, or an error description if anything here threw. */
+    private fun launchInstaller(context: Context, apkFile: File): String? {
+        if (!apkFile.exists()) return "downloaded file is missing"
+        return try {
+            val apkUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", apkFile)
+            val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(apkUri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            context.startActivity(installIntent)
+            null
+        } catch (e: Exception) {
+            e.message ?: e.javaClass.simpleName
         }
-
-        val apkUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", apkFile)
-        val installIntent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(apkUri, "application/vnd.android.package-archive")
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        context.startActivity(installIntent)
     }
 }
