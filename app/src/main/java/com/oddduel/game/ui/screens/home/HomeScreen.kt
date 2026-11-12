@@ -21,6 +21,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -93,7 +94,7 @@ fun HomeScreen(
                 ) { Text("Exit") }
             },
             dismissButton = {
-                Button(onClick = { showExitConfirm = false }) { Text("Cancel") }
+                OutlinedButton(onClick = { showExitConfirm = false }) { Text("Cancel") }
             }
         )
     }
