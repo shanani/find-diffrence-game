@@ -3,8 +3,12 @@ package com.oddduel.game.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -24,21 +28,25 @@ fun AvatarPicker(selectedIndex: Int, onSelect: (Int) -> Unit, modifier: Modifier
     LazyVerticalGrid(
         columns = GridCells.Fixed(5),
         modifier = modifier,
-        userScrollEnabled = false
+        userScrollEnabled = false,
+        contentPadding = PaddingValues(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(AvatarCatalog.all.size) { index ->
             val avatar = AvatarCatalog.all[index]
             val selected = index == selectedIndex
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
                     .clip(CircleShape)
                     .background(avatar.colorHex.toColor())
                     .border(width = if (selected) 3.dp else 0.dp, color = Color.White, shape = CircleShape)
                     .clickable { onSelect(index) },
                 contentAlignment = Alignment.Center
             ) {
-                Text(avatar.emoji, fontSize = 24.sp)
+                Text(avatar.emoji, fontSize = 20.sp)
             }
         }
     }
