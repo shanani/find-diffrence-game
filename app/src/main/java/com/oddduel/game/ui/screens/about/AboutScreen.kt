@@ -100,7 +100,7 @@ fun AboutScreen(onBack: () -> Unit) {
                     Text(current.info.releaseNotes, fontSize = 12.sp, color = Color.White.copy(alpha = 0.7f))
                 }
                 Spacer(Modifier.height(12.dp))
-                Button(onClick = { UpdateInstaller.downloadAndInstall(context, current.info) }) {
+                Button(onClick = { scope.launch { UpdateInstaller.downloadAndInstall(context, current.info) } }) {
                     Text("Update Now")
                 }
             }

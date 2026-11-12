@@ -10,6 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,6 +32,7 @@ import com.oddduel.game.update.UpdateAvailableDialog
 import com.oddduel.game.update.UpdateChecker
 import com.oddduel.game.update.UpdateInfo
 import com.oddduel.game.update.UpdateInstaller
+import kotlinx.coroutines.launch
 
 private object Routes {
     const val HOME = "home"
@@ -54,6 +56,7 @@ fun OddDuelApp() {
         audio.applySettings(settings.musicEnabled, settings.sfxEnabled, settings.musicVolume, settings.sfxVolume)
     }
 
+    val scope = rememberCoroutineScope()
     var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
     LaunchedEffect(Unit) {
         updateInfo = UpdateChecker.checkForUpdate(BuildConfig.VERSION_CODE)
@@ -95,7 +98,7 @@ fun OddDuelApp() {
         UpdateAvailableDialog(
             info = info,
             onUpdate = {
-                UpdateInstaller.downloadAndInstall(context, info)
+                scope.launch { UpdateInstaller.downloadAndInstall(context, info) }
                 updateInfo = null
             },
             onDismiss = { updateInfo = null }

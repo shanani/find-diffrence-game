@@ -1,58 +1,75 @@
 package com.oddduel.game.update
 
-import android.app.DownloadManager
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import androidx.core.content.ContextCompat
+import android.widget.Toast
 import androidx.core.content.FileProvider
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
 
 /**
- * Downloads the release APK via the system DownloadManager (so it survives the app
- * being backgrounded, shows normal download progress/notifications, and needs no
- * extra storage permission on API 26+ since it's written into this app's own
- * external files dir) and then launches the system package installer for it.
+ * Downloads the release APK directly (plain HTTP, not DownloadManager - GitHub's
+ * release asset URLs redirect to a separate CDN host, and DownloadManager has a
+ * history of failing on that redirect on some devices with zero visible error) and
+ * then launches the system package installer for it. Every failure path shows a
+ * Toast so "I tapped Update Now and nothing happened" can't happen silently again.
  */
 object UpdateInstaller {
 
-    fun downloadAndInstall(context: Context, info: UpdateInfo) {
-        val destDir = context.getExternalFilesDir("updates")
-        val destFile = File(destDir, "update.apk")
-        if (destFile.exists()) destFile.delete()
-
-        val request = DownloadManager.Request(Uri.parse(info.downloadUrl))
-            .setTitle("Odd One Out Duel update")
-            .setDescription("Downloading ${info.versionName}")
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            .setDestinationInExternalFilesDir(context, "updates", "update.apk")
-            .setMimeType("application/vnd.android.package-archive")
-            .setAllowedOverMetered(true)
-            .setAllowedOverRoaming(true)
-
-        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val downloadId = downloadManager.enqueue(request)
-
+    suspend fun downloadAndInstall(context: Context, info: UpdateInfo) {
         val appContext = context.applicationContext
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(receiverContext: Context, intent: Intent) {
-                val completedId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-                if (completedId == downloadId) {
-                    appContext.unregisterReceiver(this)
-                    promptInstall(appContext, destFile)
+        toast(appContext, "Downloading update …")
+
+        val destDir = appContext.getExternalFilesDir("updates")
+        if (destDir == null) {
+            toast(appContext, "Update failed: no storage available for the download")
+            return
+        }
+        val destFile = File(destDir, "update.apk")
+
+        val error = withContext(Dispatchers.IO) {
+            try {
+                if (destFile.exists()) destFile.delete()
+                val connection = (URL(info.downloadUrl).openConnection() as HttpURLConnection).apply {
+                    instanceFollowRedirects = true
+                    connectTimeout = 15000
+                    readTimeout = 20000
+                    setRequestProperty("User-Agent", "OddOneOutDuel-App")
                 }
+                val code = connection.responseCode
+                if (code !in 200..299) {
+                    connection.disconnect()
+                    return@withContext "server returned HTTP $code"
+                }
+                connection.inputStream.use { input ->
+                    destFile.outputStream().use { output -> input.copyTo(output) }
+                }
+                connection.disconnect()
+                if (!destFile.exists() || destFile.length() == 0L) "downloaded file was empty" else null
+            } catch (e: Exception) {
+                e.message ?: e.javaClass.simpleName
             }
         }
-        ContextCompat.registerReceiver(
-            appContext,
-            receiver,
-            IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
-            ContextCompat.RECEIVER_NOT_EXPORTED
-        )
+
+        if (error != null) {
+            toast(appContext, "Update download failed: $error")
+            return
+        }
+
+        toast(appContext, "Download complete - opening installer")
+        promptInstall(appContext, destFile)
+    }
+
+    private suspend fun toast(context: Context, message: String) {
+        withContext(Dispatchers.Main) {
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun promptInstall(context: Context, apkFile: File) {
