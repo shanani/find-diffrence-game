@@ -9,6 +9,9 @@ captures/
 .cxx/
 *.keystore
 keystore.properties
+# Deliberately-committed test-only signing key, see keystore.properties for why.
+!app/keystore/ci-test.keystore
+!/keystore.properties
 /app/build/
 /app/release/
 *.apk

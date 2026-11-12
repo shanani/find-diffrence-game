@@ -16,10 +16,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,11 +60,21 @@ fun GameScreen(
     leftProfile: PlayerProfile,
     rightProfile: PlayerProfile,
     audio: GameAudio,
+    matchKey: String = "${leftProfile.key}_vs_${rightProfile.key}",
+    onExitRequested: () -> Unit,
     onRoundFinished: (winner: PlayerProfile, leftScore: Int, rightScore: Int) -> Unit
 ) {
-    val viewModel: DuelViewModel = viewModel(factory = DuelViewModel.factoryFor(settings, leftProfile, rightProfile, audio))
+    // Keying by match identity is essential: without it Compose's viewModel()
+    // would reuse the SAME DuelViewModel (and its already-"finished" state) for
+    // every match played inside one screen instance - e.g. every round of a
+    // tournament - instantly short-circuiting every match after the first.
+    val viewModel: DuelViewModel = viewModel(
+        key = matchKey,
+        factory = DuelViewModel.factoryFor(settings, leftProfile, rightProfile, audio)
+    )
     val context = LocalContext.current
     val userRepository = remember { UserRepository(context) }
+    var showExitConfirm by remember { mutableStateOf(false) }
 
     LaunchedEffect(viewModel.finished) {
         if (viewModel.finished) {
@@ -70,41 +89,60 @@ fun GameScreen(
         }
     }
 
-    Row(Modifier.fillMaxSize().background(Color.Black)) {
-        PlayerPanel(
-            profile = leftProfile,
-            accent = PlayerLeftAccent,
-            score = viewModel.leftScore,
-            challenge = viewModel.leftChallenge,
-            enabled = !viewModel.finished,
-            wrongPulse = viewModel.leftWrongPulse,
-            onTap = { index -> viewModel.onCellTapped(PlayerSide.LEFT, index) },
-            modifier = Modifier.weight(1f).fillMaxHeight()
-        )
+    Box(Modifier.fillMaxSize().background(Color.Black)) {
+        Row(Modifier.fillMaxSize()) {
+            PlayerPanel(
+                profile = leftProfile,
+                accent = PlayerLeftAccent,
+                score = viewModel.leftScore,
+                challenge = viewModel.leftChallenge,
+                enabled = !viewModel.finished,
+                wrongPulse = viewModel.leftWrongPulse,
+                onTap = { index -> viewModel.onCellTapped(PlayerSide.LEFT, index) },
+                modifier = Modifier.weight(1f).fillMaxHeight()
+            )
 
-        Column(
-            modifier = Modifier.width(96.dp).fillMaxHeight().background(Color.Black),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            if (viewModel.isOvertime) {
-                Text("OVERTIME", color = NeonYellow, fontWeight = FontWeight.Black, fontSize = 12.sp)
-                Spacer(Modifier.size(6.dp))
+            Column(
+                modifier = Modifier.width(96.dp).fillMaxHeight().background(Color.Black),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                IconButton(onClick = { showExitConfirm = true }) {
+                    Icon(Icons.Filled.Home, contentDescription = "Exit match", tint = Color.White.copy(alpha = 0.8f))
+                }
+                if (viewModel.isOvertime) {
+                    Text("OVERTIME", color = NeonYellow, fontWeight = FontWeight.Black, fontSize = 12.sp)
+                    Spacer(Modifier.size(6.dp))
+                }
+                FancyCountdownTimer(secondsLeft = viewModel.timeLeft, totalSeconds = viewModel.totalTime)
+                Spacer(Modifier.size(8.dp))
+                Text("VS", color = Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Black, fontSize = 16.sp)
             }
-            FancyCountdownTimer(secondsLeft = viewModel.timeLeft, totalSeconds = viewModel.totalTime)
-            Spacer(Modifier.size(8.dp))
-            Text("VS", color = Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Black, fontSize = 16.sp)
-        }
 
-        PlayerPanel(
-            profile = rightProfile,
-            accent = PlayerRightAccent,
-            score = viewModel.rightScore,
-            challenge = viewModel.rightChallenge,
-            enabled = !viewModel.finished,
-            wrongPulse = viewModel.rightWrongPulse,
-            onTap = { index -> viewModel.onCellTapped(PlayerSide.RIGHT, index) },
-            modifier = Modifier.weight(1f).fillMaxHeight()
+            PlayerPanel(
+                profile = rightProfile,
+                accent = PlayerRightAccent,
+                score = viewModel.rightScore,
+                challenge = viewModel.rightChallenge,
+                enabled = !viewModel.finished,
+                wrongPulse = viewModel.rightWrongPulse,
+                onTap = { index -> viewModel.onCellTapped(PlayerSide.RIGHT, index) },
+                modifier = Modifier.weight(1f).fillMaxHeight()
+            )
+        }
+    }
+
+    if (showExitConfirm) {
+        AlertDialog(
+            onDismissRequest = { showExitConfirm = false },
+            title = { Text("Leave this match?") },
+            text = { Text("The current round's progress will be lost.") },
+            confirmButton = {
+                Button(onClick = { showExitConfirm = false; onExitRequested() }) { Text("Leave") }
+            },
+            dismissButton = {
+                Button(onClick = { showExitConfirm = false }) { Text("Stay") }
+            }
         )
     }
 }

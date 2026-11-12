@@ -53,6 +53,11 @@ fun TournamentScreen(
                     leftProfile = p1,
                     rightProfile = p2,
                     audio = audio,
+                    matchKey = "${match.round}_${match.index}",
+                    onExitRequested = {
+                        tournamentViewModel.reset()
+                        onExit()
+                    },
                     onRoundFinished = { winner, leftScore, rightScore ->
                         tournamentViewModel.recordResult(match.round, match.index, winner, leftScore, rightScore)
                         lastResult = Triple(winner, leftScore, rightScore)

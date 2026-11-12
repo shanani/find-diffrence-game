@@ -1,11 +1,15 @@
 package com.oddduel.game.ui
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -42,26 +46,28 @@ fun OddDuelApp() {
     }
 
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = Routes.HOME) {
-        composable(Routes.HOME) {
-            HomeScreen(
-                onQuickPlay = { audio.play(Sfx.CLICK); navController.navigate(Routes.QUICK_PLAY) },
-                onTournament = { audio.play(Sfx.CLICK); navController.navigate(Routes.TOURNAMENT) },
-                onAccounts = { audio.play(Sfx.CLICK); navController.navigate(Routes.ACCOUNTS) },
-                onSettings = { audio.play(Sfx.CLICK); navController.navigate(Routes.SETTINGS) }
-            )
-        }
-        composable(Routes.QUICK_PLAY) {
-            QuickPlayScreen(settings = settings, audio = audio, onExit = { navController.popBackStack() })
-        }
-        composable(Routes.TOURNAMENT) {
-            TournamentScreen(settings = settings, audio = audio, onExit = { navController.popBackStack() })
-        }
-        composable(Routes.ACCOUNTS) {
-            AccountsScreen(onBack = { navController.popBackStack() })
-        }
-        composable(Routes.SETTINGS) {
-            SettingsScreen(onBack = { navController.popBackStack() })
+    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        NavHost(navController = navController, startDestination = Routes.HOME) {
+            composable(Routes.HOME) {
+                HomeScreen(
+                    onQuickPlay = { audio.play(Sfx.CLICK); navController.navigate(Routes.QUICK_PLAY) },
+                    onTournament = { audio.play(Sfx.CLICK); navController.navigate(Routes.TOURNAMENT) },
+                    onAccounts = { audio.play(Sfx.CLICK); navController.navigate(Routes.ACCOUNTS) },
+                    onSettings = { audio.play(Sfx.CLICK); navController.navigate(Routes.SETTINGS) }
+                )
+            }
+            composable(Routes.QUICK_PLAY) {
+                QuickPlayScreen(settings = settings, audio = audio, onExit = { navController.popBackStack() })
+            }
+            composable(Routes.TOURNAMENT) {
+                TournamentScreen(settings = settings, audio = audio, onExit = { navController.popBackStack() })
+            }
+            composable(Routes.ACCOUNTS) {
+                AccountsScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.SETTINGS) {
+                SettingsScreen(onBack = { navController.popBackStack() })
+            }
         }
     }
 }
