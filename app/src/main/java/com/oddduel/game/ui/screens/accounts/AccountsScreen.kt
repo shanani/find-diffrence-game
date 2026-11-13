@@ -44,7 +44,9 @@ import com.oddduel.game.data.User
 import com.oddduel.game.ui.components.AvatarPicker
 import com.oddduel.game.ui.components.toColor
 import com.oddduel.game.ui.theme.BgPanel
+import com.oddduel.game.ui.theme.GameButtonFont
 import com.oddduel.game.ui.theme.NeonCyan
+import com.oddduel.game.ui.theme.rememberAuroraBrush
 
 @Composable
 fun AccountsScreen(
@@ -56,10 +58,10 @@ fun AccountsScreen(
     var name by remember { mutableStateOf("") }
     var avatarIndex by remember { mutableIntStateOf(0) }
 
-    Column(Modifier.fillMaxSize().padding(20.dp)) {
+    Column(Modifier.fillMaxSize().background(rememberAuroraBrush()).padding(20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = "Back") }
-            Text("Players", fontWeight = FontWeight.Black, fontSize = 26.sp)
+            Text("Players", fontFamily = GameButtonFont, fontSize = 22.sp)
         }
         Spacer(Modifier.height(12.dp))
 

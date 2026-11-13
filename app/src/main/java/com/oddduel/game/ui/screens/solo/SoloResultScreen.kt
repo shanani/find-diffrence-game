@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.oddduel.game.ui.components.rememberFitScale
 import com.oddduel.game.ui.components.scaledBy
+import com.oddduel.game.ui.theme.GameButtonFont
 import com.oddduel.game.ui.theme.NeonCyan
 import com.oddduel.game.ui.theme.NeonYellow
 import com.oddduel.game.ui.theme.rememberAuroraBrush
@@ -44,10 +45,10 @@ fun SoloResultScreen(
         ) {
             Text(modeName, color = NeonCyan, fontWeight = FontWeight.Bold, fontSize = 18.sp.scaledBy(scale))
             Spacer(Modifier.size(8.dp.scaledBy(scale)))
-            Text("GAME OVER", color = Color.White, fontWeight = FontWeight.Black, fontSize = 28.sp.scaledBy(scale))
+            Text("GAME OVER", color = Color.White, fontFamily = GameButtonFont, fontSize = 24.sp.scaledBy(scale))
             Spacer(Modifier.size(20.dp.scaledBy(scale)))
             Text(scoreLabel, color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp.scaledBy(scale))
-            Text(score.toString(), color = NeonYellow, fontWeight = FontWeight.Black, fontSize = 56.sp.scaledBy(scale))
+            Text(score.toString(), color = NeonYellow, fontFamily = GameButtonFont, fontSize = 48.sp.scaledBy(scale))
             if (subtitle != null) {
                 Spacer(Modifier.size(6.dp.scaledBy(scale)))
                 Text(subtitle, color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp.scaledBy(scale))

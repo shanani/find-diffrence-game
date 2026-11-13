@@ -31,7 +31,7 @@ import com.oddduel.game.audio.GameAudio
 import com.oddduel.game.engine.GamePauseController
 import com.oddduel.game.ui.components.OddGrid
 import com.oddduel.game.ui.components.TrackGameActive
-import com.oddduel.game.ui.theme.BgDeep
+import com.oddduel.game.ui.theme.rememberAuroraBrush
 import com.oddduel.game.ui.theme.DangerRed
 import com.oddduel.game.ui.theme.NeonYellow
 
@@ -62,7 +62,7 @@ fun ReflexHunterScreen(audio: GameAudio, pauseController: GamePauseController, o
         return
     }
 
-    Column(Modifier.fillMaxSize().background(BgDeep)) {
+    Column(Modifier.fillMaxSize().background(rememberAuroraBrush())) {
         SoloTopBar(title = "Reflex Hunter", score = vm.streak, onBack = onBack)
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
             ReflexTimerBar(intervalMs = vm.intervalMs, hopToken = vm.hopToken)

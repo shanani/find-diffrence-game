@@ -24,7 +24,7 @@ import com.oddduel.game.audio.GameAudio
 import com.oddduel.game.engine.GamePauseController
 import com.oddduel.game.ui.components.OddGrid
 import com.oddduel.game.ui.components.TrackGameActive
-import com.oddduel.game.ui.theme.BgDeep
+import com.oddduel.game.ui.theme.rememberAuroraBrush
 
 @Composable
 fun SurvivalStreakScreen(audio: GameAudio, pauseController: GamePauseController, onBack: () -> Unit) {
@@ -54,7 +54,7 @@ fun SurvivalStreakScreen(audio: GameAudio, pauseController: GamePauseController,
         return
     }
 
-    Column(Modifier.fillMaxSize().background(BgDeep)) {
+    Column(Modifier.fillMaxSize().background(rememberAuroraBrush())) {
         SoloTopBar(title = "Survival Streak", score = vm.streak, onBack = onBack)
         Text(
             "No clock - one mistake ends it. Gets harder as you go.",

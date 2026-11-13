@@ -13,10 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.oddduel.game.ui.components.AnimatedScoreCounter
+import com.oddduel.game.ui.theme.GameButtonFont
 import com.oddduel.game.ui.theme.NeonCyan
 
 @Composable
@@ -27,7 +27,7 @@ fun SoloTopBar(title: String, score: Int, onBack: () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = Color.White) }
-        Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.weight(1f))
+        Text(title, color = Color.White, fontFamily = GameButtonFont, fontSize = 16.sp, modifier = Modifier.weight(1f))
         AnimatedScoreCounter(score = score, accentColor = NeonCyan)
     }
 }

@@ -1,5 +1,6 @@
 package com.oddduel.game.ui.screens.about
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,8 +36,10 @@ import com.oddduel.game.update.UpdateInfo
 import com.oddduel.game.update.UpdateInstaller
 import com.oddduel.game.ui.components.rememberFitScale
 import com.oddduel.game.ui.components.scaledBy
+import com.oddduel.game.ui.theme.GameButtonFont
 import com.oddduel.game.ui.theme.NeonCyan
 import com.oddduel.game.ui.theme.NeonGreen
+import com.oddduel.game.ui.theme.rememberAuroraBrush
 import kotlinx.coroutines.launch
 
 private sealed class CheckState {
@@ -62,14 +65,14 @@ fun AboutScreen(onBack: () -> Unit) {
     LaunchedEffect(Unit) { runCheck() }
 
     val scale = rememberFitScale()
-    Column(Modifier.fillMaxSize().padding(20.dp.scaledBy(scale))) {
+    Column(Modifier.fillMaxSize().background(rememberAuroraBrush()).padding(20.dp.scaledBy(scale))) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = "Back") }
-            Text("About", fontWeight = FontWeight.Black, fontSize = 26.sp.scaledBy(scale))
+            Text("About", fontFamily = GameButtonFont, fontSize = 22.sp.scaledBy(scale))
         }
         Spacer(Modifier.height(24.dp.scaledBy(scale)))
 
-        Text("Odd One Out Duel", fontWeight = FontWeight.ExtraBold, fontSize = 20.sp.scaledBy(scale))
+        Text("Odd One Out Duel", fontFamily = GameButtonFont, fontSize = 16.sp.scaledBy(scale))
         Spacer(Modifier.height(4.dp.scaledBy(scale)))
         Text(
             "Version ${BuildConfig.VERSION_NAME} (build ${BuildConfig.VERSION_CODE})",

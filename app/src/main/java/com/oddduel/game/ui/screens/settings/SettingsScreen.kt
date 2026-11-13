@@ -1,6 +1,7 @@
 package com.oddduel.game.ui.screens.settings
 
 import android.content.Intent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,7 +40,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.oddduel.game.analytics.DifficultyAnalytics
 import com.oddduel.game.ui.theme.DangerRed
+import com.oddduel.game.ui.theme.GameButtonFont
 import com.oddduel.game.ui.theme.NeonCyan
+import com.oddduel.game.ui.theme.rememberAuroraBrush
 import kotlinx.coroutines.launch
 
 /**
@@ -58,12 +61,13 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel(), onBack: () -> Uni
     Column(
         Modifier
             .fillMaxSize()
+            .background(rememberAuroraBrush())
             .verticalScroll(rememberScrollState())
             .padding(20.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = "Back") }
-            Text("Settings", fontWeight = FontWeight.Black, fontSize = 26.sp)
+            Text("Settings", fontFamily = GameButtonFont, fontSize = 22.sp)
         }
         Spacer(Modifier.height(16.dp))
 
@@ -149,6 +153,12 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel(), onBack: () -> Uni
             "Music credit: W. A. Mozart - \"Eine kleine Nachtmusik\" (I. Allegro), " +
                 "performed by the Advent Chamber Orchestra. Licensed CC BY-SA 2.0 " +
                 "via Wikimedia Commons.",
+            fontSize = 11.sp,
+            color = Color.White.copy(alpha = 0.5f)
+        )
+        Text(
+            "Display font: \"Bungee\" by David Jonathan Ross, licensed under the SIL " +
+                "Open Font License 1.1.",
             fontSize = 11.sp,
             color = Color.White.copy(alpha = 0.5f)
         )

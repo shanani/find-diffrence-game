@@ -34,6 +34,7 @@ import com.oddduel.game.data.PlayerProfile
 import com.oddduel.game.ui.components.rememberFitScale
 import com.oddduel.game.ui.components.scaledBy
 import com.oddduel.game.ui.components.toColor
+import com.oddduel.game.ui.theme.GameButtonFont
 import com.oddduel.game.ui.theme.NeonYellow
 import com.oddduel.game.ui.theme.rememberAuroraBrush
 
@@ -67,7 +68,7 @@ fun RoundResultScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(headline, color = NeonYellow, fontWeight = FontWeight.Black, fontSize = 30.sp.scaledBy(scale))
+            Text(headline, color = NeonYellow, fontFamily = GameButtonFont, fontSize = 24.sp.scaledBy(scale))
             Box(
                 Modifier
                     .padding(24.dp.scaledBy(scale))

@@ -44,9 +44,11 @@ import com.oddduel.game.data.PlayerProfile
 import com.oddduel.game.ui.components.toColor
 import com.oddduel.game.ui.screens.accounts.AccountsViewModel
 import com.oddduel.game.ui.theme.BgPanel
+import com.oddduel.game.ui.theme.GameButtonFont
 import com.oddduel.game.ui.theme.NeonCyan
 import com.oddduel.game.ui.theme.PlayerLeftAccent
 import com.oddduel.game.ui.theme.PlayerRightAccent
+import com.oddduel.game.ui.theme.rememberAuroraBrush
 
 @Composable
 fun QuickPlaySetupScreen(
@@ -58,10 +60,10 @@ fun QuickPlaySetupScreen(
     var left by remember { mutableStateOf<PlayerProfile>(PlayerProfile.Guest("Player 1", 0)) }
     var right by remember { mutableStateOf<PlayerProfile>(PlayerProfile.Guest("Player 2", 1)) }
 
-    Column(Modifier.fillMaxSize().padding(20.dp)) {
+    Column(Modifier.fillMaxSize().background(rememberAuroraBrush()).padding(20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = "Back") }
-            Text("Quick Play", fontWeight = FontWeight.Black, fontSize = 26.sp)
+            Text("Quick Play", fontFamily = GameButtonFont, fontSize = 22.sp)
         }
         Spacer(Modifier.height(4.dp))
         Text("Pick who's playing on each side - a saved player or a guest.", fontSize = 13.sp, color = NeonCyan)

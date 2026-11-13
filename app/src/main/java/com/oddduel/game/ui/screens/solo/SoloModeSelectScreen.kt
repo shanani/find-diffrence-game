@@ -21,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.oddduel.game.ui.components.rememberFitScale
@@ -49,7 +48,7 @@ fun SoloModeSelectScreen(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = Color.White) }
-            Text("Solo Challenges", color = Color.White, fontWeight = FontWeight.Black, fontSize = 26.sp.scaledBy(scale))
+            Text("Solo Challenges", color = Color.White, fontFamily = GameButtonFont, fontSize = 22.sp.scaledBy(scale))
         }
         Spacer(Modifier.height(16.dp.scaledBy(scale)))
 
@@ -73,7 +72,7 @@ private fun ModeCard(title: String, description: String, accent: Color, onClick:
             .clickable(onClick = onClick)
             .padding(16.dp.scaledBy(scale))
     ) {
-        Text(title, color = accent, fontFamily = GameButtonFont, fontWeight = FontWeight.Bold, fontSize = 18.sp.scaledBy(scale))
+        Text(title, color = accent, fontFamily = GameButtonFont, fontSize = 16.sp.scaledBy(scale))
         Spacer(Modifier.height(4.dp.scaledBy(scale)))
         Text(description, color = Color.White.copy(alpha = 0.75f), fontSize = 13.sp.scaledBy(scale))
     }

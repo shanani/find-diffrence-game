@@ -38,10 +38,11 @@ import com.oddduel.game.data.Match
 import com.oddduel.game.data.PlayerProfile
 import com.oddduel.game.data.Tournament
 import com.oddduel.game.ui.components.toColor
-import com.oddduel.game.ui.theme.BgDeep
 import com.oddduel.game.ui.theme.BgPanel
+import com.oddduel.game.ui.theme.GameButtonFont
 import com.oddduel.game.ui.theme.NeonGreen
 import com.oddduel.game.ui.theme.NeonYellow
+import com.oddduel.game.ui.theme.rememberAuroraBrush
 
 /**
  * The whole bracket at a glance: every round, every match, every winner so far -
@@ -50,12 +51,12 @@ import com.oddduel.game.ui.theme.NeonYellow
  */
 @Composable
 fun TournamentBracketScreen(tournament: Tournament, isFinal: Boolean, onDone: () -> Unit) {
-    Column(Modifier.fillMaxSize().background(BgDeep).padding(20.dp)) {
+    Column(Modifier.fillMaxSize().background(rememberAuroraBrush()).padding(20.dp)) {
         if (isFinal && tournament.champion != null) {
             ChampionBanner(tournament.champion!!)
             Spacer(Modifier.height(12.dp))
         } else {
-            Text("Tournament Bracket", color = Color.White, fontWeight = FontWeight.Black, fontSize = 26.sp)
+            Text("Tournament Bracket", color = Color.White, fontFamily = GameButtonFont, fontSize = 22.sp)
             Spacer(Modifier.height(12.dp))
         }
 
@@ -105,7 +106,7 @@ private fun ChampionBanner(champion: PlayerProfile) {
         ) { Text(avatar.emoji, fontSize = 28.sp) }
         Spacer(Modifier.width(12.dp))
         Column {
-            Text("🏆 CHAMPION", color = NeonYellow, fontWeight = FontWeight.Black, fontSize = 20.sp)
+            Text("🏆 CHAMPION", color = NeonYellow, fontFamily = GameButtonFont, fontSize = 18.sp)
             Text(champion.displayName, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 22.sp)
         }
     }

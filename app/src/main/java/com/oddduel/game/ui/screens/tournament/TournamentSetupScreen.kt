@@ -46,7 +46,9 @@ import com.oddduel.game.ui.components.AvatarPicker
 import com.oddduel.game.ui.components.toColor
 import com.oddduel.game.ui.screens.accounts.AccountsViewModel
 import com.oddduel.game.ui.theme.BgPanel
+import com.oddduel.game.ui.theme.GameButtonFont
 import com.oddduel.game.ui.theme.NeonPink
+import com.oddduel.game.ui.theme.rememberAuroraBrush
 
 @Composable
 fun TournamentSetupScreen(
@@ -59,10 +61,10 @@ fun TournamentSetupScreen(
     var avatarIndex by remember { mutableIntStateOf(0) }
     val users by accountsViewModel.users.collectAsState()
 
-    Column(Modifier.fillMaxSize().padding(20.dp)) {
+    Column(Modifier.fillMaxSize().background(rememberAuroraBrush()).padding(20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = "Back") }
-            Text("Tournament Setup", fontWeight = FontWeight.Black, fontSize = 24.sp)
+            Text("Tournament Setup", fontFamily = GameButtonFont, fontSize = 20.sp)
         }
         Spacer(Modifier.height(4.dp))
         Text("Any number of players can join - they'll be bracketed into head-to-head rounds until one champion remains.", fontSize = 13.sp)

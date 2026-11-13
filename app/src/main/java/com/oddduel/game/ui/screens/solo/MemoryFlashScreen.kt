@@ -25,7 +25,7 @@ import com.oddduel.game.audio.GameAudio
 import com.oddduel.game.engine.GamePauseController
 import com.oddduel.game.ui.components.OddGrid
 import com.oddduel.game.ui.components.TrackGameActive
-import com.oddduel.game.ui.theme.BgDeep
+import com.oddduel.game.ui.theme.rememberAuroraBrush
 import com.oddduel.game.ui.theme.NeonCyan
 import com.oddduel.game.ui.theme.NeonYellow
 
@@ -56,7 +56,7 @@ fun MemoryFlashScreen(audio: GameAudio, pauseController: GamePauseController, on
         return
     }
 
-    Column(Modifier.fillMaxSize().background(BgDeep)) {
+    Column(Modifier.fillMaxSize().background(rememberAuroraBrush())) {
         SoloTopBar(title = "Memory Flash", score = vm.streak, onBack = onBack)
         Text(
             if (vm.phase == MemoryFlashViewModel.Phase.FLASH) "MEMORIZE IT..." else "WHERE WAS IT?",

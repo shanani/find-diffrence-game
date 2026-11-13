@@ -32,13 +32,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.oddduel.game.ui.components.rememberFitScale
 import com.oddduel.game.ui.components.scaledBy
 import com.oddduel.game.ui.theme.DangerRed
 import com.oddduel.game.ui.theme.FestiveAccents
+import com.oddduel.game.ui.theme.GameButtonFont
 import com.oddduel.game.ui.theme.NeonCyan
 import com.oddduel.game.ui.theme.NeonPink
 import com.oddduel.game.ui.theme.rememberAuroraBrush
@@ -74,14 +74,14 @@ fun HomeScreen(
             Text(
                 "ODD ONE OUT",
                 color = NeonCyan,
-                fontWeight = FontWeight.Black,
-                fontSize = 46.sp.scaledBy(scale)
+                fontFamily = GameButtonFont,
+                fontSize = 40.sp.scaledBy(scale)
             )
             Text(
                 "D U E L",
                 color = NeonPink,
-                fontWeight = FontWeight.Black,
-                fontSize = 28.sp.scaledBy(scale)
+                fontFamily = GameButtonFont,
+                fontSize = 24.sp.scaledBy(scale)
             )
             Spacer(Modifier.height(40.dp.scaledBy(scale)))
 
