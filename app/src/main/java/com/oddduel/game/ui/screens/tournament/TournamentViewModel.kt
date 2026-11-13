@@ -25,9 +25,4 @@ class TournamentViewModel : ViewModel() {
         tournament?.recordMatchResult(round, index, winner, leftScore, rightScore)
         version++
     }
-
-    fun reset() {
-        tournament = null
-        version = 0
-    }
 }
