@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
@@ -31,25 +33,33 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.oddduel.game.ui.components.rememberFitScale
-import com.oddduel.game.ui.components.scaledBy
 import com.oddduel.game.ui.theme.DangerRed
 import com.oddduel.game.ui.theme.NeonCyan
 
+/**
+ * Settings is a plain scrolling list, not a fixed-layout screen scaled to fit (like
+ * Home or a result screen) - it has a Slider's native, non-shrinkable touch-target
+ * height mixed in, and a scrolling settings list is itself the normal, expected
+ * pattern (every settings screen anywhere works this way), not a bug to design around.
+ */
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = viewModel(), onBack: () -> Unit, onAbout: () -> Unit) {
     val settings by viewModel.settings.collectAsState()
     var showResetConfirm by remember { mutableStateOf(false) }
-    val scale = rememberFitScale()
 
-    Column(Modifier.fillMaxSize().padding(20.dp.scaledBy(scale))) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(20.dp)
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = "Back") }
-            Text("Settings", fontWeight = FontWeight.Black, fontSize = 26.sp.scaledBy(scale))
+            Text("Settings", fontWeight = FontWeight.Black, fontSize = 26.sp)
         }
-        Spacer(Modifier.height(16.dp.scaledBy(scale)))
+        Spacer(Modifier.height(16.dp))
 
-        SectionTitle("Round timeout: ${settings.roundTimeoutSeconds}s", scale)
+        SectionTitle("Round timeout: ${settings.roundTimeoutSeconds}s")
         Slider(
             value = settings.roundTimeoutSeconds.toFloat(),
             onValueChange = { viewModel.setTimeout(it.toInt()) },
@@ -57,8 +67,8 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel(), onBack: () -> Uni
             steps = 20
         )
 
-        Spacer(Modifier.height(16.dp.scaledBy(scale)))
-        SectionTitle("Grid columns: ${settings.gridCols}", scale)
+        Spacer(Modifier.height(16.dp))
+        SectionTitle("Grid columns: ${settings.gridCols}")
         Slider(
             value = settings.gridCols.toFloat(),
             onValueChange = { viewModel.setGridSize(it.toInt(), settings.gridRows) },
@@ -66,21 +76,20 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel(), onBack: () -> Uni
             steps = 5
         )
 
-        SectionTitle("Grid rows: ${settings.gridRows}", scale)
+        SectionTitle("Grid rows: ${settings.gridRows}")
         Slider(
             value = settings.gridRows.toFloat(),
             onValueChange = { viewModel.setGridSize(settings.gridCols, it.toInt()) },
             valueRange = 2f..8f,
             steps = 5
         )
-        Text("${settings.gridCols * settings.gridRows} tiles per side", fontSize = 12.sp.scaledBy(scale), color = NeonCyan)
+        Text("${settings.gridCols * settings.gridRows} tiles per side", fontSize = 12.sp, color = NeonCyan)
 
-        Spacer(Modifier.height(20.dp.scaledBy(scale)))
+        Spacer(Modifier.height(20.dp))
         ToggleRow(
             label = "Music",
             checked = settings.musicEnabled,
-            onCheckedChange = { viewModel.setMusicEnabled(it) },
-            scale = scale
+            onCheckedChange = { viewModel.setMusicEnabled(it) }
         )
         if (settings.musicEnabled) {
             Slider(value = settings.musicVolume, onValueChange = { viewModel.setMusicVolume(it) })
@@ -89,28 +98,27 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel(), onBack: () -> Uni
         ToggleRow(
             label = "Sound effects",
             checked = settings.sfxEnabled,
-            onCheckedChange = { viewModel.setSfxEnabled(it) },
-            scale = scale
+            onCheckedChange = { viewModel.setSfxEnabled(it) }
         )
         if (settings.sfxEnabled) {
             Slider(value = settings.sfxVolume, onValueChange = { viewModel.setSfxVolume(it) })
         }
 
-        Spacer(Modifier.height(24.dp.scaledBy(scale)))
+        Spacer(Modifier.height(24.dp))
         Button(
             onClick = { showResetConfirm = true },
             colors = ButtonDefaults.buttonColors(containerColor = DangerRed)
         ) { Text("Reset All Player Scores") }
 
-        Spacer(Modifier.height(16.dp.scaledBy(scale)))
+        Spacer(Modifier.height(16.dp))
         Button(onClick = onAbout) { Text("About") }
 
-        Spacer(Modifier.height(24.dp.scaledBy(scale)))
+        Spacer(Modifier.height(24.dp))
         Text(
             "Music credit: W. A. Mozart - \"Eine kleine Nachtmusik\" (I. Allegro), " +
                 "performed by the Advent Chamber Orchestra. Licensed CC BY-SA 2.0 " +
                 "via Wikimedia Commons.",
-            fontSize = 11.sp.scaledBy(scale),
+            fontSize = 11.sp,
             color = Color.White.copy(alpha = 0.5f)
         )
     }
@@ -134,14 +142,14 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel(), onBack: () -> Uni
 }
 
 @Composable
-private fun SectionTitle(text: String, scale: Float) {
-    Text(text, fontWeight = FontWeight.Bold, fontSize = 15.sp.scaledBy(scale))
+private fun SectionTitle(text: String) {
+    Text(text, fontWeight = FontWeight.Bold, fontSize = 15.sp)
 }
 
 @Composable
-private fun ToggleRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit, scale: Float) {
+private fun ToggleRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Text(label, fontWeight = FontWeight.Bold, fontSize = 15.sp.scaledBy(scale))
+        Text(label, fontWeight = FontWeight.Bold, fontSize = 15.sp)
         Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
