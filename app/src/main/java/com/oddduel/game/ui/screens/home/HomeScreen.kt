@@ -31,17 +31,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.oddduel.game.ui.components.rememberFitScale
 import com.oddduel.game.ui.components.scaledBy
-import com.oddduel.game.ui.theme.BgDeep
 import com.oddduel.game.ui.theme.DangerRed
+import com.oddduel.game.ui.theme.FestiveAccents
 import com.oddduel.game.ui.theme.NeonCyan
 import com.oddduel.game.ui.theme.NeonPink
-import com.oddduel.game.ui.theme.NeonPurple
+import com.oddduel.game.ui.theme.rememberAuroraBrush
 
 @Composable
 fun HomeScreen(
@@ -63,7 +63,7 @@ fun HomeScreen(
     Box(
         Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(BgDeep, NeonPurple.copy(alpha = 0.25f), BgDeep))),
+            .background(rememberAuroraBrush()),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -85,15 +85,15 @@ fun HomeScreen(
             )
             Spacer(Modifier.height(40.dp.scaledBy(scale)))
 
-            MenuButton("▶  Quick Play (Guest)", Icons.Filled.PlayArrow, onQuickPlay, scale)
+            MenuButton("▶  Quick Play (Guest)", Icons.Filled.PlayArrow, onQuickPlay, scale, FestiveAccents[0])
             Spacer(Modifier.height(16.dp.scaledBy(scale)))
-            MenuButton("Tournament", Icons.Filled.EmojiEvents, onTournament, scale)
+            MenuButton("Tournament", Icons.Filled.EmojiEvents, onTournament, scale, FestiveAccents[1])
             Spacer(Modifier.height(16.dp.scaledBy(scale)))
-            MenuButton("Solo Challenges", Icons.Filled.Bolt, onSolo, scale)
+            MenuButton("Solo Challenges", Icons.Filled.Bolt, onSolo, scale, FestiveAccents[2])
             Spacer(Modifier.height(16.dp.scaledBy(scale)))
-            MenuButton("Players", Icons.Filled.Group, onAccounts, scale)
+            MenuButton("Players", Icons.Filled.Group, onAccounts, scale, FestiveAccents[0])
             Spacer(Modifier.height(16.dp.scaledBy(scale)))
-            MenuButton("Settings", Icons.Filled.Settings, onSettings, scale)
+            MenuButton("Settings", Icons.Filled.Settings, onSettings, scale, FestiveAccents[1])
         }
     }
 
@@ -116,15 +116,21 @@ fun HomeScreen(
 }
 
 @Composable
-private fun MenuButton(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit, scale: Float) {
+private fun MenuButton(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+    scale: Float,
+    accent: Color
+) {
     Button(
         onClick = onClick,
         shape = RoundedCornerShape(18.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = NeonPurple),
+        colors = ButtonDefaults.buttonColors(containerColor = accent),
         modifier = Modifier.width(320.dp.scaledBy(scale)).height(60.dp.scaledBy(scale))
     ) {
         Icon(icon, contentDescription = null)
         Spacer(Modifier.width(10.dp.scaledBy(scale)))
-        Text(label, fontWeight = FontWeight.Bold, fontSize = 18.sp.scaledBy(scale))
+        Text(label, fontSize = 18.sp.scaledBy(scale))
     }
 }

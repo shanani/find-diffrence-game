@@ -22,9 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.oddduel.game.ui.components.rememberFitScale
 import com.oddduel.game.ui.components.scaledBy
-import com.oddduel.game.ui.theme.BgDeep
 import com.oddduel.game.ui.theme.NeonCyan
 import com.oddduel.game.ui.theme.NeonYellow
+import com.oddduel.game.ui.theme.rememberAuroraBrush
 
 @Composable
 fun SoloResultScreen(
@@ -36,7 +36,7 @@ fun SoloResultScreen(
     onBackToModes: () -> Unit
 ) {
     val scale = rememberFitScale()
-    Box(Modifier.fillMaxSize().background(BgDeep), contentAlignment = Alignment.Center) {
+    Box(Modifier.fillMaxSize().background(rememberAuroraBrush()), contentAlignment = Alignment.Center) {
         Column(
             modifier = Modifier.fillMaxSize().padding(vertical = 16.dp.scaledBy(scale)),
             horizontalAlignment = Alignment.CenterHorizontally,

@@ -34,8 +34,8 @@ import com.oddduel.game.data.PlayerProfile
 import com.oddduel.game.ui.components.rememberFitScale
 import com.oddduel.game.ui.components.scaledBy
 import com.oddduel.game.ui.components.toColor
-import com.oddduel.game.ui.theme.BgDeep
 import com.oddduel.game.ui.theme.NeonYellow
+import com.oddduel.game.ui.theme.rememberAuroraBrush
 
 /**
  * Shown right after a single duel ends. The caller decides what the two action
@@ -61,7 +61,7 @@ fun RoundResultScreen(
         label = "bounce"
     )
     val scale = rememberFitScale()
-    Box(Modifier.fillMaxSize().background(BgDeep), contentAlignment = Alignment.Center) {
+    Box(Modifier.fillMaxSize().background(rememberAuroraBrush()), contentAlignment = Alignment.Center) {
         Column(
             modifier = Modifier.fillMaxSize().padding(vertical = 16.dp.scaledBy(scale)),
             horizontalAlignment = Alignment.CenterHorizontally,

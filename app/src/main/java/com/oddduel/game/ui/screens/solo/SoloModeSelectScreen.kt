@@ -26,12 +26,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.oddduel.game.ui.components.rememberFitScale
 import com.oddduel.game.ui.components.scaledBy
-import com.oddduel.game.ui.theme.BgDeep
 import com.oddduel.game.ui.theme.BgPanel
-import com.oddduel.game.ui.theme.NeonCyan
-import com.oddduel.game.ui.theme.NeonGreen
-import com.oddduel.game.ui.theme.NeonPink
-import com.oddduel.game.ui.theme.NeonYellow
+import com.oddduel.game.ui.theme.FestiveAccents
+import com.oddduel.game.ui.theme.GameButtonFont
+import com.oddduel.game.ui.theme.rememberAuroraBrush
 
 @Composable
 fun SoloModeSelectScreen(
@@ -45,7 +43,7 @@ fun SoloModeSelectScreen(
     Column(
         Modifier
             .fillMaxSize()
-            .background(BgDeep)
+            .background(rememberAuroraBrush())
             .padding(20.dp.scaledBy(scale)),
         verticalArrangement = Arrangement.Center
     ) {
@@ -55,13 +53,13 @@ fun SoloModeSelectScreen(
         }
         Spacer(Modifier.height(16.dp.scaledBy(scale)))
 
-        ModeCard("⏱️ Time Attack", "20 cards, 5 seconds each - how many can you solve?", NeonYellow, onTimeAttack, scale)
+        ModeCard("⏱️ Time Attack", "20 cards, 5 seconds each - how many can you solve?", FestiveAccents[0], onTimeAttack, scale)
         Spacer(Modifier.height(12.dp.scaledBy(scale)))
-        ModeCard("⚡ Reflex Hunter", "The odd one keeps jumping - tap it before it moves again", NeonPink, onReflexHunter, scale)
+        ModeCard("⚡ Reflex Hunter", "The odd one keeps jumping - tap it before it moves again", FestiveAccents[1], onReflexHunter, scale)
         Spacer(Modifier.height(12.dp.scaledBy(scale)))
-        ModeCard("🔥 Survival Streak", "No clock, just don't miss - it gets harder every few rounds", NeonCyan, onSurvivalStreak, scale)
+        ModeCard("🔥 Survival Streak", "No clock, just don't miss - it gets harder every few rounds", FestiveAccents[2], onSurvivalStreak, scale)
         Spacer(Modifier.height(12.dp.scaledBy(scale)))
-        ModeCard("🧠 Memory Flash", "The grid flashes then goes blank - tap where the odd one was", NeonGreen, onMemoryFlash, scale)
+        ModeCard("🧠 Memory Flash", "The grid flashes then goes blank - tap where the odd one was", FestiveAccents[0], onMemoryFlash, scale)
     }
 }
 
@@ -75,7 +73,7 @@ private fun ModeCard(title: String, description: String, accent: Color, onClick:
             .clickable(onClick = onClick)
             .padding(16.dp.scaledBy(scale))
     ) {
-        Text(title, color = accent, fontWeight = FontWeight.Bold, fontSize = 18.sp.scaledBy(scale))
+        Text(title, color = accent, fontFamily = GameButtonFont, fontWeight = FontWeight.Bold, fontSize = 18.sp.scaledBy(scale))
         Spacer(Modifier.height(4.dp.scaledBy(scale)))
         Text(description, color = Color.White.copy(alpha = 0.75f), fontSize = 13.sp.scaledBy(scale))
     }
