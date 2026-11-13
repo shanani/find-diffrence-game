@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import com.oddduel.game.audio.GameAudio
 import com.oddduel.game.data.GameSettings
 import com.oddduel.game.data.PlayerProfile
+import com.oddduel.game.engine.GamePauseController
 import com.oddduel.game.ui.screens.tournament.RoundResultScreen
 
 private enum class Phase { SETUP, PLAYING, RESULT }
@@ -20,7 +21,7 @@ private enum class Phase { SETUP, PLAYING, RESULT }
  * rematch the same two players again or head back home.
  */
 @Composable
-fun QuickPlayScreen(settings: GameSettings, audio: GameAudio, onExit: () -> Unit) {
+fun QuickPlayScreen(settings: GameSettings, audio: GameAudio, pauseController: GamePauseController, onExit: () -> Unit) {
     var phase by remember { mutableStateOf(Phase.SETUP) }
     var leftProfile by remember { mutableStateOf<PlayerProfile?>(null) }
     var rightProfile by remember { mutableStateOf<PlayerProfile?>(null) }
@@ -49,6 +50,7 @@ fun QuickPlayScreen(settings: GameSettings, audio: GameAudio, onExit: () -> Unit
                     leftProfile = left,
                     rightProfile = right,
                     audio = audio,
+                    pauseController = pauseController,
                     matchKey = "quick_play_$matchNumber",
                     onExitRequested = onExit,
                     onRoundFinished = { winner, leftScore, rightScore ->

@@ -45,6 +45,7 @@ import com.oddduel.game.data.GameSettings
 import com.oddduel.game.data.PlayerProfile
 import com.oddduel.game.data.UserRepository
 import com.oddduel.game.engine.Challenge
+import com.oddduel.game.engine.GamePauseController
 import com.oddduel.game.ui.components.AnimatedScoreCounter
 import com.oddduel.game.ui.components.FancyCountdownTimer
 import com.oddduel.game.ui.components.OddGrid
@@ -60,6 +61,7 @@ fun GameScreen(
     leftProfile: PlayerProfile,
     rightProfile: PlayerProfile,
     audio: GameAudio,
+    pauseController: GamePauseController,
     matchKey: String = "${leftProfile.key}_vs_${rightProfile.key}",
     onExitRequested: () -> Unit,
     onRoundFinished: (winner: PlayerProfile, leftScore: Int, rightScore: Int) -> Unit
@@ -70,7 +72,7 @@ fun GameScreen(
     // tournament - instantly short-circuiting every match after the first.
     val viewModel: DuelViewModel = viewModel(
         key = matchKey,
-        factory = DuelViewModel.factoryFor(settings, leftProfile, rightProfile, audio)
+        factory = DuelViewModel.factoryFor(settings, leftProfile, rightProfile, audio, pauseController)
     )
     val context = LocalContext.current
     val userRepository = remember { UserRepository(context) }

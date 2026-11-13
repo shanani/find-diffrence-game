@@ -14,7 +14,7 @@ import com.oddduel.game.data.GameSettings
 import com.oddduel.game.data.PlayerProfile
 import com.oddduel.game.engine.Challenge
 import com.oddduel.game.engine.ChallengeCache
-import kotlinx.coroutines.delay
+import com.oddduel.game.engine.GamePauseController
 import kotlinx.coroutines.launch
 
 enum class PlayerSide { LEFT, RIGHT }
@@ -27,13 +27,20 @@ class DuelViewModel(
     private val settings: GameSettings,
     val leftProfile: PlayerProfile,
     val rightProfile: PlayerProfile,
-    private val audio: GameAudio
+    private val audio: GameAudio,
+    private val pauseController: GamePauseController
 ) : ViewModel() {
 
     companion object {
-        fun factoryFor(settings: GameSettings, left: PlayerProfile, right: PlayerProfile, audio: GameAudio): ViewModelProvider.Factory =
+        fun factoryFor(
+            settings: GameSettings,
+            left: PlayerProfile,
+            right: PlayerProfile,
+            audio: GameAudio,
+            pauseController: GamePauseController
+        ): ViewModelProvider.Factory =
             viewModelFactory {
-                initializer { DuelViewModel(settings, left, right, audio) }
+                initializer { DuelViewModel(settings, left, right, audio, pauseController) }
             }
     }
 
@@ -66,7 +73,7 @@ class DuelViewModel(
 
     private suspend fun runTimer() {
         while (!finished) {
-            delay(1000)
+            pauseController.pausableDelay(1000)
             if (finished) return
             timeLeft -= 1
             if (timeLeft in 1..3) audio.play(Sfx.TICK)

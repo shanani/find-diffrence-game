@@ -94,7 +94,10 @@ private fun buildShapePath(shape: ShapeKind, s: Float, ox: Float, oy: Float): Pa
         ShapeKind.TRIANGLE -> polygon(s, 3, startAngleDeg = -90f, ox = ox, oy = oy)
         ShapeKind.PENTAGON -> polygon(s, 5, startAngleDeg = -90f, ox = ox, oy = oy)
         ShapeKind.HEXAGON -> polygon(s, 6, startAngleDeg = -90f, ox = ox, oy = oy)
+        ShapeKind.HEPTAGON -> polygon(s, 7, startAngleDeg = -90f, ox = ox, oy = oy)
+        ShapeKind.OCTAGON -> polygon(s, 8, startAngleDeg = -90f, ox = ox, oy = oy)
         ShapeKind.STAR -> star(s, 5, ox = ox, oy = oy)
+        ShapeKind.STAR6 -> star(s, 6, ox = ox, oy = oy)
     }
 }
 

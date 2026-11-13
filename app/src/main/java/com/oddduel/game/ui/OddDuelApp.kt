@@ -1,7 +1,11 @@
 package com.oddduel.game.ui
 
 import android.app.Activity
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -13,8 +17,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -23,11 +34,19 @@ import com.oddduel.game.audio.GameAudio
 import com.oddduel.game.audio.Sfx
 import com.oddduel.game.data.GameSettings
 import com.oddduel.game.data.SettingsRepository
+import com.oddduel.game.engine.GamePauseController
+import com.oddduel.game.ui.components.PauseButton
+import com.oddduel.game.ui.components.PauseOverlay
 import com.oddduel.game.ui.screens.about.AboutScreen
 import com.oddduel.game.ui.screens.accounts.AccountsScreen
 import com.oddduel.game.ui.screens.game.QuickPlayScreen
 import com.oddduel.game.ui.screens.home.HomeScreen
 import com.oddduel.game.ui.screens.settings.SettingsScreen
+import com.oddduel.game.ui.screens.solo.MemoryFlashScreen
+import com.oddduel.game.ui.screens.solo.ReflexHunterScreen
+import com.oddduel.game.ui.screens.solo.SoloModeSelectScreen
+import com.oddduel.game.ui.screens.solo.SurvivalStreakScreen
+import com.oddduel.game.ui.screens.solo.TimeAttackScreen
 import com.oddduel.game.ui.screens.tournament.TournamentScreen
 import com.oddduel.game.update.UpdateAvailableDialog
 import com.oddduel.game.update.UpdateChecker
@@ -43,6 +62,56 @@ private object Routes {
     const val ACCOUNTS = "accounts"
     const val SETTINGS = "settings"
     const val ABOUT = "about"
+    const val SOLO_SELECT = "solo_select"
+    const val SOLO_TIME_ATTACK = "solo_time_attack"
+    const val SOLO_REFLEX_HUNTER = "solo_reflex_hunter"
+    const val SOLO_SURVIVAL_STREAK = "solo_survival_streak"
+    const val SOLO_MEMORY_FLASH = "solo_memory_flash"
+}
+
+private const val TRANSITION_MS = 260
+
+// One consistent slide+fade used by every destination in the graph so switching between
+// any two screens (home <-> solo select <-> a solo game <-> settings, etc.) feels the same.
+private fun NavGraphBuilder.navDestination(
+    route: String,
+    content: @Composable (androidx.navigation.NavBackStackEntry) -> Unit
+) {
+    composable(
+        route = route,
+        enterTransition = {
+            androidx.compose.animation.slideIntoContainer(
+                AnimatedContentTransitionScope.SlideDirection.Start,
+                animationSpec = tween(TRANSITION_MS)
+            ) + androidx.compose.animation.fadeIn(tween(TRANSITION_MS))
+        },
+        exitTransition = {
+            androidx.compose.animation.slideOutOfContainer(
+                AnimatedContentTransitionScope.SlideDirection.Start,
+                animationSpec = tween(TRANSITION_MS)
+            ) + androidx.compose.animation.fadeOut(tween(TRANSITION_MS))
+        },
+        popEnterTransition = {
+            androidx.compose.animation.slideIntoContainer(
+                AnimatedContentTransitionScope.SlideDirection.End,
+                animationSpec = tween(TRANSITION_MS)
+            ) + androidx.compose.animation.fadeIn(tween(TRANSITION_MS))
+        },
+        popExitTransition = {
+            androidx.compose.animation.slideOutOfContainer(
+                AnimatedContentTransitionScope.SlideDirection.End,
+                animationSpec = tween(TRANSITION_MS)
+            ) + androidx.compose.animation.fadeOut(tween(TRANSITION_MS))
+        },
+        content = content
+    )
+}
+
+// Every call site plays a click and uses launchSingleTop so a double-tapped button
+// (or a fast finger on a TV remote) can never push the same destination twice.
+private fun navigate(navController: NavHostController, audio: GameAudio, route: String) {
+    audio.play(Sfx.CLICK)
+    navController.navigate(route) { launchSingleTop = true }
 }
 
 @Composable
@@ -50,6 +119,28 @@ fun OddDuelApp() {
     val context = LocalContext.current
     val audio = remember { GameAudio(context) }
     DisposableEffect(Unit) { onDispose { audio.release() } }
+
+    // One pause switch for the WHOLE game - every timer-driven ViewModel (duel round
+    // countdown, the solo-mode clocks) checks this, not just the music - shared across
+    // the manual pause button and the app being backgrounded.
+    val pauseController = remember { GamePauseController() }
+
+    // Backgrounding the app (switching to another app, locking the screen, etc.) must
+    // freeze gameplay AND cut the music immediately. Coming back to the foreground
+    // deliberately does NOT auto-resume: the Pause overlay stays up until the player
+    // taps Resume, so a round can never silently keep running - or silently restart
+    // the soundtrack - behind their back while they were away.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, audio, pauseController) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) {
+                pauseController.pause()
+                audio.pauseAudio()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     val settingsRepo = remember { SettingsRepository(context) }
     val settings by settingsRepo.settings.collectAsState(initial = GameSettings())
@@ -65,38 +156,93 @@ fun OddDuelApp() {
     }
 
     val navController = rememberNavController()
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        NavHost(navController = navController, startDestination = Routes.HOME) {
-            composable(Routes.HOME) {
-                HomeScreen(
-                    onQuickPlay = { audio.play(Sfx.CLICK); navController.navigate(Routes.QUICK_PLAY) },
-                    onTournament = { audio.play(Sfx.CLICK); navController.navigate(Routes.TOURNAMENT) },
-                    onAccounts = { audio.play(Sfx.CLICK); navController.navigate(Routes.ACCOUNTS) },
-                    onSettings = { audio.play(Sfx.CLICK); navController.navigate(Routes.SETTINGS) },
-                    onExitApp = {
-                        (context as? Activity)?.finishAffinity()
-                        exitProcess(0)
-                    }
-                )
+    Box(Modifier.fillMaxSize()) {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            NavHost(navController = navController, startDestination = Routes.HOME) {
+                navDestination(Routes.HOME) {
+                    HomeScreen(
+                        onQuickPlay = { navigate(navController, audio, Routes.QUICK_PLAY) },
+                        onTournament = { navigate(navController, audio, Routes.TOURNAMENT) },
+                        onSolo = { navigate(navController, audio, Routes.SOLO_SELECT) },
+                        onAccounts = { navigate(navController, audio, Routes.ACCOUNTS) },
+                        onSettings = { navigate(navController, audio, Routes.SETTINGS) },
+                        onExitApp = {
+                            (context as? Activity)?.finishAffinity()
+                            exitProcess(0)
+                        }
+                    )
+                }
+                navDestination(Routes.QUICK_PLAY) {
+                    QuickPlayScreen(
+                        settings = settings,
+                        audio = audio,
+                        pauseController = pauseController,
+                        onExit = { navController.popBackStack() }
+                    )
+                }
+                navDestination(Routes.TOURNAMENT) {
+                    TournamentScreen(
+                        settings = settings,
+                        audio = audio,
+                        pauseController = pauseController,
+                        onExit = { navController.popBackStack() }
+                    )
+                }
+                navDestination(Routes.ACCOUNTS) {
+                    AccountsScreen(onBack = { navController.popBackStack() })
+                }
+                navDestination(Routes.SETTINGS) {
+                    SettingsScreen(
+                        onBack = { navController.popBackStack() },
+                        onAbout = { navigate(navController, audio, Routes.ABOUT) }
+                    )
+                }
+                navDestination(Routes.ABOUT) {
+                    AboutScreen(onBack = { navController.popBackStack() })
+                }
+                navDestination(Routes.SOLO_SELECT) {
+                    SoloModeSelectScreen(
+                        onBack = { navController.popBackStack() },
+                        onTimeAttack = { navigate(navController, audio, Routes.SOLO_TIME_ATTACK) },
+                        onReflexHunter = { navigate(navController, audio, Routes.SOLO_REFLEX_HUNTER) },
+                        onSurvivalStreak = { navigate(navController, audio, Routes.SOLO_SURVIVAL_STREAK) },
+                        onMemoryFlash = { navigate(navController, audio, Routes.SOLO_MEMORY_FLASH) }
+                    )
+                }
+                navDestination(Routes.SOLO_TIME_ATTACK) {
+                    TimeAttackScreen(audio = audio, pauseController = pauseController, onBack = { navController.popBackStack() })
+                }
+                navDestination(Routes.SOLO_REFLEX_HUNTER) {
+                    ReflexHunterScreen(audio = audio, pauseController = pauseController, onBack = { navController.popBackStack() })
+                }
+                navDestination(Routes.SOLO_SURVIVAL_STREAK) {
+                    SurvivalStreakScreen(audio = audio, onBack = { navController.popBackStack() })
+                }
+                navDestination(Routes.SOLO_MEMORY_FLASH) {
+                    MemoryFlashScreen(audio = audio, pauseController = pauseController, onBack = { navController.popBackStack() })
+                }
             }
-            composable(Routes.QUICK_PLAY) {
-                QuickPlayScreen(settings = settings, audio = audio, onExit = { navController.popBackStack() })
-            }
-            composable(Routes.TOURNAMENT) {
-                TournamentScreen(settings = settings, audio = audio, onExit = { navController.popBackStack() })
-            }
-            composable(Routes.ACCOUNTS) {
-                AccountsScreen(onBack = { navController.popBackStack() })
-            }
-            composable(Routes.SETTINGS) {
-                SettingsScreen(
-                    onBack = { navController.popBackStack() },
-                    onAbout = { navController.navigate(Routes.ABOUT) }
-                )
-            }
-            composable(Routes.ABOUT) {
-                AboutScreen(onBack = { navController.popBackStack() })
-            }
+        }
+
+        // Fixed in the same spot above every screen in the graph, so the player never has
+        // to hunt for it and it never collides with a given screen's own top bar content.
+        PauseButton(
+            onClick = { pauseController.pause(); audio.pauseAudio() },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = 16.dp)
+        )
+
+        if (pauseController.isPaused) {
+            PauseOverlay(
+                audio = audio,
+                onResume = { pauseController.resume(); audio.resumeAudio() },
+                onQuitToHome = {
+                    pauseController.resume()
+                    audio.resumeAudio()
+                    navController.popBackStack(Routes.HOME, inclusive = false)
+                }
+            )
         }
     }
 

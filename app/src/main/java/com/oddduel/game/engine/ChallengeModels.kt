@@ -2,7 +2,7 @@ package com.oddduel.game.engine
 
 enum class ChallengeCategory { SHAPE, LETTER, EMOJI, PATTERN }
 
-enum class ShapeKind { CIRCLE, SQUARE, TRIANGLE, PENTAGON, HEXAGON, STAR, DIAMOND }
+enum class ShapeKind { CIRCLE, SQUARE, TRIANGLE, PENTAGON, HEXAGON, STAR, DIAMOND, HEPTAGON, OCTAGON, STAR6 }
 
 enum class DifferenceType { ROTATE, FLIP_H, FLIP_V, COLOR_SHIFT, SCALE, STYLE, GLYPH_SWAP, PATTERN_MOVE, PATTERN_REMOVE, PATTERN_ADD }
 

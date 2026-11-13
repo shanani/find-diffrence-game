@@ -4,6 +4,9 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.SoundPool
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.oddduel.game.R
 
 enum class Sfx(val resId: Int) {
@@ -42,13 +45,23 @@ class GameAudio(private val context: Context) {
     private var musicVolume = 0.55f
     private var sfxVolume = 0.85f
 
+    // A transient, this-session-only mute from the Pause overlay's "Mute Music" button -
+    // deliberately separate from the persisted Settings toggle (`musicEnabled`) above, so
+    // a quick mute from the pause menu doesn't need to write through DataStore and doesn't
+    // flip the player's saved preference for next time.
+    private var musicMutedByUser = false
+
+    /** True while music is actually audible right now; drives the pause/play icon. */
+    var musicPlaying by mutableStateOf(false)
+        private set
+
     fun applySettings(musicEnabled: Boolean, sfxEnabled: Boolean, musicVolume: Float, sfxVolume: Float) {
         this.musicEnabled = musicEnabled
         this.sfxEnabled = sfxEnabled
         this.musicVolume = musicVolume
         this.sfxVolume = sfxVolume
         music?.setVolume(musicVolume, musicVolume)
-        if (!musicEnabled) stopMusic() else if (music == null || music?.isPlaying == false) startMusic()
+        if (!musicEnabled) stopMusic() else startMusic()
     }
 
     fun play(sfx: Sfx) {
@@ -57,10 +70,16 @@ class GameAudio(private val context: Context) {
         soundPool.play(id, sfxVolume, sfxVolume, 1, 0, 1f)
     }
 
+    fun toggleMusicMute() {
+        musicMutedByUser = !musicMutedByUser
+        if (musicMutedByUser) stopMusic() else startMusic()
+    }
+
     fun startMusic() {
-        if (!musicEnabled) return
+        if (!musicEnabled || musicMutedByUser) return
         if (music != null) {
             music?.let { if (!it.isPlaying) it.start() }
+            musicPlaying = true
             return
         }
         music = MediaPlayer.create(context, R.raw.mozart_nachtmusik)?.apply {
@@ -74,10 +93,29 @@ class GameAudio(private val context: Context) {
             )
             start()
         }
+        musicPlaying = music != null
     }
 
     fun stopMusic() {
         music?.pause()
+        musicPlaying = false
+    }
+
+    /**
+     * Pauses everything audible - music AND any in-flight short sound effect - for the
+     * app-wide pause (manual pause button, or the app being backgrounded). Resuming is
+     * always an explicit [resumeAudio] call from the Pause overlay's Resume button, never
+     * automatic, so returning to the foreground never silently restarts the soundtrack.
+     */
+    fun pauseAudio() {
+        music?.pause()
+        musicPlaying = false
+        soundPool.autoPause()
+    }
+
+    fun resumeAudio() {
+        soundPool.autoResume()
+        startMusic()
     }
 
     fun release() {

@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.oddduel.game.audio.GameAudio
 import com.oddduel.game.data.GameSettings
 import com.oddduel.game.data.PlayerProfile
+import com.oddduel.game.engine.GamePauseController
 import com.oddduel.game.ui.screens.game.GameScreen
 
 private enum class Phase { SETUP, PLAYING, RESULT, BRACKET }
@@ -25,6 +26,7 @@ private enum class Phase { SETUP, PLAYING, RESULT, BRACKET }
 fun TournamentScreen(
     settings: GameSettings,
     audio: GameAudio,
+    pauseController: GamePauseController,
     tournamentViewModel: TournamentViewModel = viewModel(),
     onExit: () -> Unit
 ) {
@@ -54,6 +56,7 @@ fun TournamentScreen(
                     leftProfile = p1,
                     rightProfile = p2,
                     audio = audio,
+                    pauseController = pauseController,
                     matchKey = "${match.round}_${match.index}",
                     onExitRequested = onExit,
                     onRoundFinished = { winner, leftScore, rightScore ->

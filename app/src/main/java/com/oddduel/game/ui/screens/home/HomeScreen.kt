@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.PlayArrow
@@ -46,6 +47,7 @@ import com.oddduel.game.ui.theme.NeonPurple
 fun HomeScreen(
     onQuickPlay: () -> Unit,
     onTournament: () -> Unit,
+    onSolo: () -> Unit,
     onAccounts: () -> Unit,
     onSettings: () -> Unit,
     onExitApp: () -> Unit
@@ -84,6 +86,8 @@ fun HomeScreen(
             MenuButton("▶  Quick Play (Guest)", Icons.Filled.PlayArrow, onQuickPlay)
             Spacer(Modifier.height(16.dp))
             MenuButton("Tournament", Icons.Filled.EmojiEvents, onTournament)
+            Spacer(Modifier.height(16.dp))
+            MenuButton("Solo Challenges", Icons.Filled.Bolt, onSolo)
             Spacer(Modifier.height(16.dp))
             MenuButton("Players", Icons.Filled.Group, onAccounts)
             Spacer(Modifier.height(16.dp))
