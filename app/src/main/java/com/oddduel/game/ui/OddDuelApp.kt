@@ -40,6 +40,7 @@ import com.oddduel.game.data.SettingsRepository
 import com.oddduel.game.engine.GamePauseController
 import com.oddduel.game.ui.components.PauseButton
 import com.oddduel.game.ui.components.PauseOverlay
+import com.oddduel.game.ui.components.UpdateProgressIndicator
 import com.oddduel.game.ui.screens.about.AboutScreen
 import com.oddduel.game.ui.screens.accounts.AccountsScreen
 import com.oddduel.game.ui.screens.game.QuickPlayScreen
@@ -128,17 +129,31 @@ fun OddDuelApp() {
     // the manual pause button and the app being backgrounded.
     val pauseController = remember { GamePauseController() }
 
+    val scope = rememberCoroutineScope()
+
     // Backgrounding the app (switching to another app, locking the screen, etc.) must
     // freeze gameplay AND cut the music immediately. Coming back to the foreground
-    // deliberately does NOT auto-resume: the Pause overlay stays up until the player
-    // taps Resume, so a round can never silently keep running - or silently restart
-    // the soundtrack - behind their back while they were away.
+    // deliberately does NOT auto-resume gameplay: the Pause overlay stays up until the
+    // player taps Resume, so a round can never silently keep running - or silently
+    // restart the soundtrack - behind their back while they were away.
+    //
+    // Separately, ON_START also resumes a pending APK update: granting "install unknown
+    // apps" always sends the player out to Settings and back, so without this the
+    // download would just silently never continue and they'd have to notice and tap
+    // Update Now a second time - exactly the "did that button even do anything?" feeling
+    // this is meant to eliminate.
     val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner, audio, pauseController) {
+    DisposableEffect(lifecycleOwner, audio, pauseController, scope) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_STOP) {
-                pauseController.pause()
-                audio.pauseAudio()
+            when (event) {
+                Lifecycle.Event.ON_STOP -> {
+                    pauseController.pause()
+                    audio.pauseAudio()
+                }
+                Lifecycle.Event.ON_START -> {
+                    scope.launch { UpdateInstaller.resumeIfPermissionNowGranted(context) }
+                }
+                else -> {}
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -152,7 +167,6 @@ fun OddDuelApp() {
         audio.applySettings(settings.musicEnabled, settings.sfxEnabled, settings.musicVolume, settings.sfxVolume)
     }
 
-    val scope = rememberCoroutineScope()
     var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
     LaunchedEffect(Unit) {
         updateInfo = UpdateChecker.checkForUpdate(BuildConfig.VERSION_CODE)
@@ -235,6 +249,17 @@ fun OddDuelApp() {
                 .align(Alignment.BottomEnd)
                 .padding(end = 16.dp, bottom = 16.dp)
         )
+
+        // Visible on every screen the instant a download is actually running - including
+        // one resumed automatically on ON_START after a permission round trip to Settings,
+        // so "I hit Update Now" never again looks like it did nothing.
+        if (UpdateInstaller.isDownloading) {
+            UpdateProgressIndicator(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 16.dp)
+            )
+        }
 
         if (pauseController.isPaused) {
             PauseOverlay(
