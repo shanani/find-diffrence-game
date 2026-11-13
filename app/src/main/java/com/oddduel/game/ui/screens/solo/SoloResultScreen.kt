@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
@@ -22,6 +20,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.oddduel.game.ui.components.rememberFitScale
+import com.oddduel.game.ui.components.scaledBy
 import com.oddduel.game.ui.theme.BgDeep
 import com.oddduel.game.ui.theme.NeonCyan
 import com.oddduel.game.ui.theme.NeonYellow
@@ -35,27 +35,25 @@ fun SoloResultScreen(
     onPlayAgain: () -> Unit,
     onBackToModes: () -> Unit
 ) {
+    val scale = rememberFitScale()
     Box(Modifier.fillMaxSize().background(BgDeep), contentAlignment = Alignment.Center) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(vertical = 16.dp),
+            modifier = Modifier.fillMaxSize().padding(vertical = 16.dp.scaledBy(scale)),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(modeName, color = NeonCyan, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Spacer(Modifier.size(8.dp))
-            Text("GAME OVER", color = Color.White, fontWeight = FontWeight.Black, fontSize = 28.sp)
-            Spacer(Modifier.size(20.dp))
-            Text(scoreLabel, color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp)
-            Text(score.toString(), color = NeonYellow, fontWeight = FontWeight.Black, fontSize = 56.sp)
+            Text(modeName, color = NeonCyan, fontWeight = FontWeight.Bold, fontSize = 18.sp.scaledBy(scale))
+            Spacer(Modifier.size(8.dp.scaledBy(scale)))
+            Text("GAME OVER", color = Color.White, fontWeight = FontWeight.Black, fontSize = 28.sp.scaledBy(scale))
+            Spacer(Modifier.size(20.dp.scaledBy(scale)))
+            Text(scoreLabel, color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp.scaledBy(scale))
+            Text(score.toString(), color = NeonYellow, fontWeight = FontWeight.Black, fontSize = 56.sp.scaledBy(scale))
             if (subtitle != null) {
-                Spacer(Modifier.size(6.dp))
-                Text(subtitle, color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp)
+                Spacer(Modifier.size(6.dp.scaledBy(scale)))
+                Text(subtitle, color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp.scaledBy(scale))
             }
-            Spacer(Modifier.size(28.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Spacer(Modifier.size(28.dp.scaledBy(scale)))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp.scaledBy(scale))) {
                 Button(onClick = onPlayAgain) { Text("Play Again") }
                 OutlinedButton(
                     onClick = onBackToModes,

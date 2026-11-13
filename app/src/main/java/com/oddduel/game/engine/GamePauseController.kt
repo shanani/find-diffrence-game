@@ -16,6 +16,19 @@ class GamePauseController {
     var isPaused by mutableStateOf(false)
         private set
 
+    /**
+     * True only while an actual round/run is in progress on screen (a duel, or a solo
+     * mode before it's game-over) - not on any menu, setup or result screen. Drives
+     * whether the floating pause button even shows, and which of the two background
+     * behaviors ON_STOP uses: freeze the round, or just mute the music.
+     */
+    var isGameActive by mutableStateOf(false)
+        private set
+
+    fun setGameActive(active: Boolean) {
+        isGameActive = active
+    }
+
     fun pause() {
         isPaused = true
     }

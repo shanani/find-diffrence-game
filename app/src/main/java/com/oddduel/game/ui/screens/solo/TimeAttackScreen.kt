@@ -21,6 +21,7 @@ import com.oddduel.game.audio.GameAudio
 import com.oddduel.game.engine.GamePauseController
 import com.oddduel.game.ui.components.FancyCountdownTimer
 import com.oddduel.game.ui.components.OddGrid
+import com.oddduel.game.ui.components.TrackGameActive
 import com.oddduel.game.ui.theme.BgDeep
 
 @Composable
@@ -30,6 +31,7 @@ fun TimeAttackScreen(audio: GameAudio, pauseController: GamePauseController, onB
         key = "time_attack_$playCount",
         factory = TimeAttackViewModel.factoryFor(audio, pauseController)
     )
+    TrackGameActive(pauseController, active = !vm.gameOver)
 
     if (vm.gameOver) {
         SoloResultScreen(

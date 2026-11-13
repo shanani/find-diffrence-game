@@ -131,26 +131,35 @@ fun OddDuelApp() {
 
     val scope = rememberCoroutineScope()
 
-    // Backgrounding the app (switching to another app, locking the screen, etc.) must
-    // freeze gameplay AND cut the music immediately. Coming back to the foreground
-    // deliberately does NOT auto-resume gameplay: the Pause overlay stays up until the
-    // player taps Resume, so a round can never silently keep running - or silently
-    // restart the soundtrack - behind their back while they were away.
+    // Backgrounding the app (switching to another app, locking the screen, etc.) has
+    // two different jobs depending on what's actually on screen:
+    //  - mid-round (pauseController.isGameActive): freeze the round AND cut the music.
+    //    Coming back deliberately does NOT auto-resume either one - the Pause overlay
+    //    stays up until the player taps Resume, so a round can never silently keep
+    //    running, or the soundtrack silently restart, behind their back while away.
+    //  - anywhere else (a menu, settings, a result screen): there's no round to freeze,
+    //    so this only mutes the music, and it resumes on its own when they come back -
+    //    exactly what "excellent apps" do with menu music, no explicit tap needed.
     //
-    // Separately, ON_START also resumes a pending APK update: granting "install unknown
-    // apps" always sends the player out to Settings and back, so without this the
-    // download would just silently never continue and they'd have to notice and tap
-    // Update Now a second time - exactly the "did that button even do anything?" feeling
-    // this is meant to eliminate.
+    // ON_START also resumes a pending APK update: granting "install unknown apps"
+    // always sends the player out to Settings and back, so without this the download
+    // would just silently never continue and they'd have to notice and tap Update Now
+    // a second time - exactly the "did that button even do anything?" feeling this is
+    // meant to eliminate.
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner, audio, pauseController, scope) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_STOP -> {
-                    pauseController.pause()
+                    if (pauseController.isGameActive) {
+                        pauseController.pause()
+                    }
                     audio.pauseAudio()
                 }
                 Lifecycle.Event.ON_START -> {
+                    if (!pauseController.isPaused) {
+                        audio.resumeAudio()
+                    }
                     scope.launch { UpdateInstaller.resumeIfPermissionNowGranted(context) }
                 }
                 else -> {}
@@ -233,7 +242,7 @@ fun OddDuelApp() {
                     ReflexHunterScreen(audio = audio, pauseController = pauseController, onBack = { navController.popBackStack() })
                 }
                 navDestination(Routes.SOLO_SURVIVAL_STREAK) {
-                    SurvivalStreakScreen(audio = audio, onBack = { navController.popBackStack() })
+                    SurvivalStreakScreen(audio = audio, pauseController = pauseController, onBack = { navController.popBackStack() })
                 }
                 navDestination(Routes.SOLO_MEMORY_FLASH) {
                     MemoryFlashScreen(audio = audio, pauseController = pauseController, onBack = { navController.popBackStack() })
@@ -241,14 +250,16 @@ fun OddDuelApp() {
             }
         }
 
-        // Fixed in the same spot above every screen in the graph, so the player never has
-        // to hunt for it and it never collides with a given screen's own top bar content.
-        PauseButton(
-            onClick = { pauseController.pause(); audio.pauseAudio() },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = 16.dp)
-        )
+        // Fixed in the same spot on every gameplay screen - but only while a round is
+        // actually in progress; it has nothing to pause on a menu, setup or result screen.
+        if (pauseController.isGameActive) {
+            PauseButton(
+                onClick = { pauseController.pause(); audio.pauseAudio() },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = 16.dp)
+            )
+        }
 
         // Visible on every screen the instant a download is actually running - including
         // one resumed automatically on ON_START after a permission round trip to Settings,

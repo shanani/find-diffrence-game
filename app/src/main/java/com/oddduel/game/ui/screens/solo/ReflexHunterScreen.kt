@@ -28,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.oddduel.game.audio.GameAudio
 import com.oddduel.game.engine.GamePauseController
 import com.oddduel.game.ui.components.OddGrid
+import com.oddduel.game.ui.components.TrackGameActive
 import com.oddduel.game.ui.theme.BgDeep
 import com.oddduel.game.ui.theme.DangerRed
 import com.oddduel.game.ui.theme.NeonYellow
@@ -39,6 +40,7 @@ fun ReflexHunterScreen(audio: GameAudio, pauseController: GamePauseController, o
         key = "reflex_hunter_$playCount",
         factory = ReflexHunterViewModel.factoryFor(audio, pauseController)
     )
+    TrackGameActive(pauseController, active = !vm.gameOver)
 
     if (vm.gameOver) {
         SoloResultScreen(

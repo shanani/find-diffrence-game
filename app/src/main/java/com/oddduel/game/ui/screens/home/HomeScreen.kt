@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
@@ -37,6 +35,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.oddduel.game.ui.components.rememberFitScale
+import com.oddduel.game.ui.components.scaledBy
 import com.oddduel.game.ui.theme.BgDeep
 import com.oddduel.game.ui.theme.DangerRed
 import com.oddduel.game.ui.theme.NeonCyan
@@ -55,6 +55,11 @@ fun HomeScreen(
     var showExitConfirm by remember { mutableStateOf(false) }
     BackHandler { showExitConfirm = true }
 
+    // Scaling (instead of scrolling or letting it clip) is what actually keeps every
+    // menu button on screen at once on a short display, while a roomy TV/tablet still
+    // sees the full, unscaled design.
+    val scale = rememberFitScale()
+
     Box(
         Modifier
             .fillMaxSize()
@@ -62,10 +67,7 @@ fun HomeScreen(
         contentAlignment = Alignment.Center
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(vertical = 24.dp),
+            modifier = Modifier.fillMaxSize().padding(vertical = 16.dp.scaledBy(scale)),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -73,25 +75,25 @@ fun HomeScreen(
                 "ODD ONE OUT",
                 color = NeonCyan,
                 fontWeight = FontWeight.Black,
-                fontSize = 46.sp
+                fontSize = 46.sp.scaledBy(scale)
             )
             Text(
                 "D U E L",
                 color = NeonPink,
                 fontWeight = FontWeight.Black,
-                fontSize = 28.sp
+                fontSize = 28.sp.scaledBy(scale)
             )
-            Spacer(Modifier.height(40.dp))
+            Spacer(Modifier.height(40.dp.scaledBy(scale)))
 
-            MenuButton("▶  Quick Play (Guest)", Icons.Filled.PlayArrow, onQuickPlay)
-            Spacer(Modifier.height(16.dp))
-            MenuButton("Tournament", Icons.Filled.EmojiEvents, onTournament)
-            Spacer(Modifier.height(16.dp))
-            MenuButton("Solo Challenges", Icons.Filled.Bolt, onSolo)
-            Spacer(Modifier.height(16.dp))
-            MenuButton("Players", Icons.Filled.Group, onAccounts)
-            Spacer(Modifier.height(16.dp))
-            MenuButton("Settings", Icons.Filled.Settings, onSettings)
+            MenuButton("▶  Quick Play (Guest)", Icons.Filled.PlayArrow, onQuickPlay, scale)
+            Spacer(Modifier.height(16.dp.scaledBy(scale)))
+            MenuButton("Tournament", Icons.Filled.EmojiEvents, onTournament, scale)
+            Spacer(Modifier.height(16.dp.scaledBy(scale)))
+            MenuButton("Solo Challenges", Icons.Filled.Bolt, onSolo, scale)
+            Spacer(Modifier.height(16.dp.scaledBy(scale)))
+            MenuButton("Players", Icons.Filled.Group, onAccounts, scale)
+            Spacer(Modifier.height(16.dp.scaledBy(scale)))
+            MenuButton("Settings", Icons.Filled.Settings, onSettings, scale)
         }
     }
 
@@ -114,15 +116,15 @@ fun HomeScreen(
 }
 
 @Composable
-private fun MenuButton(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
+private fun MenuButton(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit, scale: Float) {
     Button(
         onClick = onClick,
         shape = RoundedCornerShape(18.dp),
         colors = ButtonDefaults.buttonColors(containerColor = NeonPurple),
-        modifier = Modifier.width(320.dp).height(60.dp)
+        modifier = Modifier.width(320.dp.scaledBy(scale)).height(60.dp.scaledBy(scale))
     ) {
         Icon(icon, contentDescription = null)
-        Spacer(Modifier.width(10.dp))
-        Text(label, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        Spacer(Modifier.width(10.dp.scaledBy(scale)))
+        Text(label, fontWeight = FontWeight.Bold, fontSize = 18.sp.scaledBy(scale))
     }
 }

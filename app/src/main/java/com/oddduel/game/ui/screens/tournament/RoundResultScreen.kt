@@ -14,8 +14,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -33,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.oddduel.game.data.AvatarCatalog
 import com.oddduel.game.data.PlayerProfile
+import com.oddduel.game.ui.components.rememberFitScale
+import com.oddduel.game.ui.components.scaledBy
 import com.oddduel.game.ui.components.toColor
 import com.oddduel.game.ui.theme.BgDeep
 import com.oddduel.game.ui.theme.NeonYellow
@@ -60,24 +60,27 @@ fun RoundResultScreen(
         animationSpec = infiniteRepeatable(tween(500), RepeatMode.Reverse),
         label = "bounce"
     )
+    val scale = rememberFitScale()
     Box(Modifier.fillMaxSize().background(BgDeep), contentAlignment = Alignment.Center) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(vertical = 16.dp),
+            modifier = Modifier.fillMaxSize().padding(vertical = 16.dp.scaledBy(scale)),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(headline, color = NeonYellow, fontWeight = FontWeight.Black, fontSize = 30.sp)
+            Text(headline, color = NeonYellow, fontWeight = FontWeight.Black, fontSize = 30.sp.scaledBy(scale))
             Box(
-                Modifier.padding(24.dp).size(110.dp).scale(bounce).clip(CircleShape).background(avatar.colorHex.toColor()),
+                Modifier
+                    .padding(24.dp.scaledBy(scale))
+                    .size(110.dp.scaledBy(scale))
+                    .scale(bounce)
+                    .clip(CircleShape)
+                    .background(avatar.colorHex.toColor()),
                 contentAlignment = Alignment.Center
-            ) { Text(avatar.emoji, fontSize = 54.sp) }
-            Text(winner.displayName, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 26.sp)
-            Text("$leftScore  -  $rightScore", color = Color.White.copy(alpha = 0.7f), fontSize = 18.sp)
-            Spacer(Modifier.size(24.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            ) { Text(avatar.emoji, fontSize = 54.sp.scaledBy(scale)) }
+            Text(winner.displayName, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 26.sp.scaledBy(scale))
+            Text("$leftScore  -  $rightScore", color = Color.White.copy(alpha = 0.7f), fontSize = 18.sp.scaledBy(scale))
+            Spacer(Modifier.size(24.dp.scaledBy(scale)))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp.scaledBy(scale))) {
                 Button(onClick = onPrimary) { Text(primaryLabel) }
                 if (secondaryLabel != null && onSecondary != null) {
                     OutlinedButton(

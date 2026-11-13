@@ -2,8 +2,6 @@ package com.oddduel.game.ui.screens.about
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -35,6 +33,8 @@ import com.oddduel.game.BuildConfig
 import com.oddduel.game.update.UpdateChecker
 import com.oddduel.game.update.UpdateInfo
 import com.oddduel.game.update.UpdateInstaller
+import com.oddduel.game.ui.components.rememberFitScale
+import com.oddduel.game.ui.components.scaledBy
 import com.oddduel.game.ui.theme.NeonCyan
 import com.oddduel.game.ui.theme.NeonGreen
 import kotlinx.coroutines.launch
@@ -61,33 +61,34 @@ fun AboutScreen(onBack: () -> Unit) {
 
     LaunchedEffect(Unit) { runCheck() }
 
-    Column(Modifier.fillMaxSize().padding(20.dp).verticalScroll(rememberScrollState())) {
+    val scale = rememberFitScale()
+    Column(Modifier.fillMaxSize().padding(20.dp.scaledBy(scale))) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = "Back") }
-            Text("About", fontWeight = FontWeight.Black, fontSize = 26.sp)
+            Text("About", fontWeight = FontWeight.Black, fontSize = 26.sp.scaledBy(scale))
         }
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(24.dp.scaledBy(scale)))
 
-        Text("Odd One Out Duel", fontWeight = FontWeight.ExtraBold, fontSize = 20.sp)
-        Spacer(Modifier.height(4.dp))
+        Text("Odd One Out Duel", fontWeight = FontWeight.ExtraBold, fontSize = 20.sp.scaledBy(scale))
+        Spacer(Modifier.height(4.dp.scaledBy(scale)))
         Text(
             "Version ${BuildConfig.VERSION_NAME} (build ${BuildConfig.VERSION_CODE})",
             color = Color.White.copy(alpha = 0.7f),
-            fontSize = 14.sp
+            fontSize = 14.sp.scaledBy(scale)
         )
-        Spacer(Modifier.height(28.dp))
+        Spacer(Modifier.height(28.dp.scaledBy(scale)))
 
         when (val current = state) {
             is CheckState.Checking -> {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                    Spacer(Modifier.width(10.dp))
-                    Text("Checking for updates...", fontSize = 14.sp)
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp.scaledBy(scale)), strokeWidth = 2.dp)
+                    Spacer(Modifier.width(10.dp.scaledBy(scale)))
+                    Text("Checking for updates...", fontSize = 14.sp.scaledBy(scale))
                 }
             }
             is CheckState.UpToDate -> {
-                Text("✓ You're on the latest version", color = NeonGreen, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                Spacer(Modifier.height(12.dp))
+                Text("✓ You're on the latest version", color = NeonGreen, fontWeight = FontWeight.Bold, fontSize = 15.sp.scaledBy(scale))
+                Spacer(Modifier.height(12.dp.scaledBy(scale)))
                 Button(onClick = { runCheck() }) { Text("Check for Updates") }
             }
             is CheckState.Available -> {
@@ -95,13 +96,13 @@ fun AboutScreen(onBack: () -> Unit) {
                     "A new version is available: ${current.info.versionName}",
                     color = NeonCyan,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp
+                    fontSize = 15.sp.scaledBy(scale)
                 )
                 if (current.info.releaseNotes.isNotBlank()) {
-                    Spacer(Modifier.height(6.dp))
-                    Text(current.info.releaseNotes, fontSize = 12.sp, color = Color.White.copy(alpha = 0.7f))
+                    Spacer(Modifier.height(6.dp.scaledBy(scale)))
+                    Text(current.info.releaseNotes, fontSize = 12.sp.scaledBy(scale), color = Color.White.copy(alpha = 0.7f))
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(12.dp.scaledBy(scale)))
                 Button(onClick = { scope.launch { UpdateInstaller.downloadAndInstall(context, current.info) } }) {
                     Text("Update Now")
                 }

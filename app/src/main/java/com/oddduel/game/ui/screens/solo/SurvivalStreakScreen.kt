@@ -18,16 +18,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.oddduel.game.audio.GameAudio
+import com.oddduel.game.engine.GamePauseController
 import com.oddduel.game.ui.components.OddGrid
+import com.oddduel.game.ui.components.TrackGameActive
 import com.oddduel.game.ui.theme.BgDeep
 
 @Composable
-fun SurvivalStreakScreen(audio: GameAudio, onBack: () -> Unit) {
+fun SurvivalStreakScreen(audio: GameAudio, pauseController: GamePauseController, onBack: () -> Unit) {
     var playCount by remember { mutableIntStateOf(0) }
     val vm: SurvivalStreakViewModel = viewModel(
         key = "survival_streak_$playCount",
         factory = SurvivalStreakViewModel.factoryFor(audio)
     )
+    TrackGameActive(pauseController, active = !vm.gameOver)
 
     if (vm.gameOver) {
         SoloResultScreen(

@@ -21,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.oddduel.game.audio.GameAudio
 import com.oddduel.game.engine.GamePauseController
 import com.oddduel.game.ui.components.OddGrid
+import com.oddduel.game.ui.components.TrackGameActive
 import com.oddduel.game.ui.theme.BgDeep
 import com.oddduel.game.ui.theme.NeonCyan
 import com.oddduel.game.ui.theme.NeonYellow
@@ -32,6 +33,7 @@ fun MemoryFlashScreen(audio: GameAudio, pauseController: GamePauseController, on
         key = "memory_flash_$playCount",
         factory = MemoryFlashViewModel.factoryFor(audio, pauseController)
     )
+    TrackGameActive(pauseController, active = !vm.gameOver)
 
     if (vm.gameOver) {
         SoloResultScreen(

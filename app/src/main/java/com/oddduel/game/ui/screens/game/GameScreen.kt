@@ -49,6 +49,7 @@ import com.oddduel.game.engine.GamePauseController
 import com.oddduel.game.ui.components.AnimatedScoreCounter
 import com.oddduel.game.ui.components.FancyCountdownTimer
 import com.oddduel.game.ui.components.OddGrid
+import com.oddduel.game.ui.components.TrackGameActive
 import com.oddduel.game.ui.components.toColor
 import com.oddduel.game.ui.theme.BgPanel
 import com.oddduel.game.ui.theme.NeonYellow
@@ -77,6 +78,11 @@ fun GameScreen(
     val context = LocalContext.current
     val userRepository = remember { UserRepository(context) }
     var showExitConfirm by remember { mutableStateOf(false) }
+
+    // The pause button only shows, and ON_STOP only freezes the round, while a match
+    // is actually in progress - not once it's finished, and not if the player leaves
+    // this screen mid-round (e.g. backs out via the exit dialog).
+    TrackGameActive(pauseController, active = !viewModel.finished)
 
     LaunchedEffect(viewModel.finished) {
         if (viewModel.finished) {
