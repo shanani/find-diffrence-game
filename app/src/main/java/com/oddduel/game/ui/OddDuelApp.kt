@@ -1,8 +1,13 @@
 package com.oddduel.game.ui
 
 import android.app.Activity
+import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideIntoContainer
+import androidx.compose.animation.slideOutOfContainer
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -75,33 +80,33 @@ private const val TRANSITION_MS = 260
 // any two screens (home <-> solo select <-> a solo game <-> settings, etc.) feels the same.
 private fun NavGraphBuilder.navDestination(
     route: String,
-    content: @Composable (androidx.navigation.NavBackStackEntry) -> Unit
+    content: @Composable AnimatedContentScope.(androidx.navigation.NavBackStackEntry) -> Unit
 ) {
     composable(
         route = route,
         enterTransition = {
-            androidx.compose.animation.slideIntoContainer(
+            slideIntoContainer(
                 AnimatedContentTransitionScope.SlideDirection.Start,
                 animationSpec = tween(TRANSITION_MS)
-            ) + androidx.compose.animation.fadeIn(tween(TRANSITION_MS))
+            ) + fadeIn(tween(TRANSITION_MS))
         },
         exitTransition = {
-            androidx.compose.animation.slideOutOfContainer(
+            slideOutOfContainer(
                 AnimatedContentTransitionScope.SlideDirection.Start,
                 animationSpec = tween(TRANSITION_MS)
-            ) + androidx.compose.animation.fadeOut(tween(TRANSITION_MS))
+            ) + fadeOut(tween(TRANSITION_MS))
         },
         popEnterTransition = {
-            androidx.compose.animation.slideIntoContainer(
+            slideIntoContainer(
                 AnimatedContentTransitionScope.SlideDirection.End,
                 animationSpec = tween(TRANSITION_MS)
-            ) + androidx.compose.animation.fadeIn(tween(TRANSITION_MS))
+            ) + fadeIn(tween(TRANSITION_MS))
         },
         popExitTransition = {
-            androidx.compose.animation.slideOutOfContainer(
+            slideOutOfContainer(
                 AnimatedContentTransitionScope.SlideDirection.End,
                 animationSpec = tween(TRANSITION_MS)
-            ) + androidx.compose.animation.fadeOut(tween(TRANSITION_MS))
+            ) + fadeOut(tween(TRANSITION_MS))
         },
         content = content
     )
