@@ -15,9 +15,9 @@ import com.oddduel.game.engine.GamePauseController
 @Composable
 fun TrackGameActive(pauseController: GamePauseController, active: Boolean) {
     LaunchedEffect(active) {
-        pauseController.setGameActive(active)
+        pauseController.markGameActive(active)
     }
     DisposableEffect(Unit) {
-        onDispose { pauseController.setGameActive(false) }
+        onDispose { pauseController.markGameActive(false) }
     }
 }

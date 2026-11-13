@@ -25,7 +25,11 @@ class GamePauseController {
     var isGameActive by mutableStateOf(false)
         private set
 
-    fun setGameActive(active: Boolean) {
+    // Named markGameActive, not setGameActive: Kotlin already generates a JVM
+    // setGameActive(boolean) for the isGameActive property itself (it strips the
+    // "is" prefix the same way a Java bean setter would), so a function with that
+    // exact name is a platform signature clash, not just a Kotlin-level shadow.
+    fun markGameActive(active: Boolean) {
         isGameActive = active
     }
 
