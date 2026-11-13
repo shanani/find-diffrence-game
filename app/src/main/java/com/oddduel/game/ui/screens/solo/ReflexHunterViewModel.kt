@@ -44,6 +44,7 @@ class ReflexHunterViewModel(private val audio: GameAudio, private val pauseContr
     private var difficultyTier = 1
     private val cache = ChallengeCache(GRID_ROWS, GRID_COLS, { difficultyTier }, viewModelScope)
     private var hopJob: Job? = null
+    private val startTimeMs = System.currentTimeMillis()
 
     var challenge by mutableStateOf<Challenge?>(null); private set
     var streak by mutableStateOf(0); private set
@@ -51,6 +52,9 @@ class ReflexHunterViewModel(private val audio: GameAudio, private val pauseContr
     var hopToken by mutableStateOf(0); private set
     var gameOver by mutableStateOf(false); private set
     var wrongPulse by mutableStateOf(0); private set
+
+    /** Wall-clock time this run took, set the moment [gameOver] flips - for DifficultyAnalytics. */
+    var elapsedMs by mutableStateOf(0L); private set
 
     init {
         viewModelScope.launch {
@@ -96,6 +100,7 @@ class ReflexHunterViewModel(private val audio: GameAudio, private val pauseContr
 
     private fun endGame() {
         if (gameOver) return
+        elapsedMs = System.currentTimeMillis() - startTimeMs
         gameOver = true
         hopJob?.cancel()
         audio.play(if (streak >= 10) Sfx.VICTORY else Sfx.TIMEOUT)

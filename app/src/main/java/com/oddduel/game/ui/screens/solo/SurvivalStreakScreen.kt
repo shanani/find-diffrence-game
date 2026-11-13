@@ -7,16 +7,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.oddduel.game.analytics.DifficultyAnalytics
 import com.oddduel.game.audio.GameAudio
 import com.oddduel.game.engine.GamePauseController
 import com.oddduel.game.ui.components.OddGrid
@@ -31,6 +34,13 @@ fun SurvivalStreakScreen(audio: GameAudio, pauseController: GamePauseController,
         factory = SurvivalStreakViewModel.factoryFor(audio)
     )
     TrackGameActive(pauseController, active = !vm.gameOver)
+
+    val context = LocalContext.current
+    LaunchedEffect(vm.gameOver) {
+        if (vm.gameOver) {
+            DifficultyAnalytics.reportSession(context, "survival_streak", vm.elapsedMs, vm.streak + 1, vm.streak)
+        }
+    }
 
     if (vm.gameOver) {
         SoloResultScreen(

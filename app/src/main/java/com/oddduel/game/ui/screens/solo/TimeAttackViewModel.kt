@@ -36,6 +36,7 @@ class TimeAttackViewModel(private val audio: GameAudio, private val pauseControl
     }
 
     private val cache = ChallengeCache(GRID_ROWS, GRID_COLS, { DIFFICULTY_TIER }, viewModelScope)
+    private val startTimeMs = System.currentTimeMillis()
 
     var challenge by mutableStateOf<Challenge?>(null); private set
     var correctCount by mutableStateOf(0); private set
@@ -43,6 +44,9 @@ class TimeAttackViewModel(private val audio: GameAudio, private val pauseControl
     var timeLeft by mutableStateOf(PER_CARD_SECONDS); private set
     var gameOver by mutableStateOf(false); private set
     var wrongPulse by mutableStateOf(0); private set
+
+    /** Wall-clock time this run took, set the moment [gameOver] flips - for DifficultyAnalytics. */
+    var elapsedMs by mutableStateOf(0L); private set
 
     init {
         viewModelScope.launch {
@@ -80,6 +84,7 @@ class TimeAttackViewModel(private val audio: GameAudio, private val pauseControl
     private fun advanceCard(hit: Boolean) {
         cardsPlayed += 1
         if (cardsPlayed >= DECK_SIZE) {
+            elapsedMs = System.currentTimeMillis() - startTimeMs
             gameOver = true
             audio.play(if (correctCount >= DECK_SIZE / 2) Sfx.VICTORY else Sfx.TIMEOUT)
             return

@@ -1,5 +1,6 @@
 package com.oddduel.game.ui.screens.settings
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -25,16 +27,20 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.oddduel.game.analytics.DifficultyAnalytics
 import com.oddduel.game.ui.theme.DangerRed
 import com.oddduel.game.ui.theme.NeonCyan
+import kotlinx.coroutines.launch
 
 /**
  * Settings is a plain scrolling list, not a fixed-layout screen scaled to fit (like
@@ -46,6 +52,8 @@ import com.oddduel.game.ui.theme.NeonCyan
 fun SettingsScreen(viewModel: SettingsViewModel = viewModel(), onBack: () -> Unit, onAbout: () -> Unit) {
     val settings by viewModel.settings.collectAsState()
     var showResetConfirm by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     Column(
         Modifier
@@ -112,6 +120,29 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel(), onBack: () -> Uni
 
         Spacer(Modifier.height(16.dp))
         Button(onClick = onAbout) { Text("About") }
+
+        Spacer(Modifier.height(16.dp))
+        OutlinedButton(
+            onClick = {
+                scope.launch {
+                    val json = DifficultyAnalytics.readStatsJson(context)
+                    val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_SUBJECT, "Odd One Out Duel - gameplay stats")
+                        putExtra(Intent.EXTRA_TEXT, json)
+                    }
+                    context.startActivity(Intent.createChooser(sendIntent, "Share gameplay stats"))
+                }
+            },
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+        ) { Text("Share Gameplay Stats") }
+        Text(
+            "A local-only record of how long serious solo sessions take, used only to " +
+                "help tune difficulty in future updates - never read by the game itself, " +
+                "and never sent anywhere unless you tap this and choose where.",
+            fontSize = 11.sp,
+            color = Color.White.copy(alpha = 0.5f)
+        )
 
         Spacer(Modifier.height(24.dp))
         Text(

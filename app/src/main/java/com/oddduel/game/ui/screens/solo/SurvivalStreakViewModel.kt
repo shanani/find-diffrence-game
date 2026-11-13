@@ -34,6 +34,7 @@ class SurvivalStreakViewModel(private val audio: GameAudio) : ViewModel() {
     private var difficultyTier = 1
     private var gridIndex = 0
     private var cache: ChallengeCache
+    private val startTimeMs = System.currentTimeMillis()
 
     var challenge by mutableStateOf<Challenge?>(null); private set
     var streak by mutableStateOf(0); private set
@@ -41,6 +42,9 @@ class SurvivalStreakViewModel(private val audio: GameAudio) : ViewModel() {
     var gridCols by mutableStateOf(GRID_SEQUENCE[0].second); private set
     var gameOver by mutableStateOf(false); private set
     var wrongPulse by mutableStateOf(0); private set
+
+    /** Wall-clock time this run took, set the moment [gameOver] flips - for DifficultyAnalytics. */
+    var elapsedMs by mutableStateOf(0L); private set
 
     init {
         cache = ChallengeCache(gridRows, gridCols, { difficultyTier }, viewModelScope)
@@ -73,6 +77,7 @@ class SurvivalStreakViewModel(private val audio: GameAudio) : ViewModel() {
         } else {
             audio.play(Sfx.WRONG)
             wrongPulse += 1
+            elapsedMs = System.currentTimeMillis() - startTimeMs
             gameOver = true
             audio.play(if (streak >= 15) Sfx.VICTORY else Sfx.TIMEOUT)
         }

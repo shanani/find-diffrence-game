@@ -22,9 +22,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.oddduel.game.analytics.DifficultyAnalytics
 import com.oddduel.game.audio.GameAudio
 import com.oddduel.game.engine.GamePauseController
 import com.oddduel.game.ui.components.OddGrid
@@ -41,6 +43,13 @@ fun ReflexHunterScreen(audio: GameAudio, pauseController: GamePauseController, o
         factory = ReflexHunterViewModel.factoryFor(audio, pauseController)
     )
     TrackGameActive(pauseController, active = !vm.gameOver)
+
+    val context = LocalContext.current
+    LaunchedEffect(vm.gameOver) {
+        if (vm.gameOver) {
+            DifficultyAnalytics.reportSession(context, "reflex_hunter", vm.elapsedMs, vm.streak + 1, vm.streak)
+        }
+    }
 
     if (vm.gameOver) {
         SoloResultScreen(

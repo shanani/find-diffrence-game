@@ -45,12 +45,16 @@ class MemoryFlashViewModel(private val audio: GameAudio, private val pauseContro
     private val cache = ChallengeCache(GRID_ROWS, GRID_COLS, { DIFFICULTY_TIER }, viewModelScope)
     private var realChallenge: Challenge? = null
     private var flashMs = START_FLASH_MS
+    private val startTimeMs = System.currentTimeMillis()
 
     var displayedChallenge by mutableStateOf<Challenge?>(null); private set
     var phase by mutableStateOf(Phase.FLASH); private set
     var streak by mutableStateOf(0); private set
     var gameOver by mutableStateOf(false); private set
     var wrongPulse by mutableStateOf(0); private set
+
+    /** Wall-clock time this run took, set the moment [gameOver] flips - for DifficultyAnalytics. */
+    var elapsedMs by mutableStateOf(0L); private set
 
     init {
         viewModelScope.launch {
@@ -89,6 +93,7 @@ class MemoryFlashViewModel(private val audio: GameAudio, private val pauseContro
         } else {
             audio.play(Sfx.WRONG)
             wrongPulse += 1
+            elapsedMs = System.currentTimeMillis() - startTimeMs
             gameOver = true
             audio.play(if (streak >= 8) Sfx.VICTORY else Sfx.TIMEOUT)
         }
