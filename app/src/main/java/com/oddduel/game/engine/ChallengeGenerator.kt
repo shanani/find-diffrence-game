@@ -16,6 +16,9 @@ import kotlin.random.Random
  *
  * [difficultyTier] (1 = gentle, 5 = razor subtle) only scales *how large* a difference
  * is, never whether it is visible at all.
+ *
+ * FACE is the one category where [difficultyTier] also shifts *which kind* of
+ * difference gets picked, not just its size - see [pickFaceDifference].
  */
 object ChallengeGenerator {
 
@@ -70,6 +73,15 @@ object ChallengeGenerator {
                 val color = GlyphPools.palette.random(random)
                 CellStyle(category = category, patternHighlights = setOf(pos), colorArgb = color) to emptyList()
             }
+            ChallengeCategory.FACE -> {
+                val identityIndex = FaceCatalog.identities.indices.random(random)
+                val state = random.nextInt(2)
+                val style = CellStyle(category = category, faceDrawableRes = FaceCatalog.drawableFor(identityIndex, state))
+                // Stashes (identityIndex, state) through the same "family" slot EMOJI uses for
+                // its sibling-glyph list, so mutate() below can recover which photo is the base
+                // without widening buildBaseTemplate's return type just for this one category.
+                style to listOf(identityIndex.toString(), state.toString())
+            }
         }
     }
 
@@ -80,6 +92,12 @@ object ChallengeGenerator {
         tier: Int,
         random: Random
     ): Pair<CellStyle, DifferenceType> {
+        if (category == ChallengeCategory.FACE) {
+            val identityIndex = family[0].toInt()
+            val state = family[1].toInt()
+            val diffType = pickFaceDifference(tier, random)
+            return applyFaceDifference(base, identityIndex, state, diffType, random) to diffType
+        }
         val candidates = validDifferenceTypes(base, category, family)
         val chosen = candidates.random(random)
         val mutated = when (chosen) {
@@ -112,6 +130,9 @@ object ChallengeGenerator {
                 val extra = nonCenterPositions.filter { it !in base.patternHighlights }.random(random)
                 base.copy(patternHighlights = base.patternHighlights + extra)
             }
+            // Unreachable here: FACE returns early above, and validDifferenceTypes() never
+            // hands a non-FACE category one of these. Kept only so this `when` is exhaustive.
+            DifferenceType.FACE_IDENTITY, DifferenceType.FACE_TRANSFORM, DifferenceType.FACE_EXPRESSION -> base
         }
         return mutated to chosen
     }
@@ -144,7 +165,59 @@ object ChallengeGenerator {
                 add(DifferenceType.PATTERN_REMOVE)
                 add(DifferenceType.PATTERN_ADD)
             }
+            // FACE is handled entirely inside mutate() via pickFaceDifference/applyFaceDifference,
+            // since its three difference types are tier-weighted rather than uniformly random -
+            // this branch only exists so the `when` above stays exhaustive.
+            ChallengeCategory.FACE -> listOf(DifferenceType.FACE_IDENTITY, DifferenceType.FACE_TRANSFORM, DifferenceType.FACE_EXPRESSION)
         }
+    }
+
+    /**
+     * Weights FACE's three sub-difficulties by [tier]: low tiers favor FACE_IDENTITY (a
+     * completely different kid - unmissable), high tiers favor FACE_EXPRESSION (the same
+     * kid, same pose, only their expression changed - the hardest spot in the whole game).
+     */
+    private fun pickFaceDifference(tier: Int, random: Random): DifferenceType {
+        val weights = when (tier) {
+            1 -> listOf(DifferenceType.FACE_IDENTITY to 70, DifferenceType.FACE_TRANSFORM to 25, DifferenceType.FACE_EXPRESSION to 5)
+            2 -> listOf(DifferenceType.FACE_IDENTITY to 55, DifferenceType.FACE_TRANSFORM to 30, DifferenceType.FACE_EXPRESSION to 15)
+            3 -> listOf(DifferenceType.FACE_IDENTITY to 35, DifferenceType.FACE_TRANSFORM to 35, DifferenceType.FACE_EXPRESSION to 30)
+            4 -> listOf(DifferenceType.FACE_IDENTITY to 20, DifferenceType.FACE_TRANSFORM to 30, DifferenceType.FACE_EXPRESSION to 50)
+            else -> listOf(DifferenceType.FACE_IDENTITY to 10, DifferenceType.FACE_TRANSFORM to 20, DifferenceType.FACE_EXPRESSION to 70)
+        }
+        var r = random.nextInt(weights.sumOf { it.second })
+        for ((type, weight) in weights) {
+            if (r < weight) return type
+            r -= weight
+        }
+        return weights.last().first
+    }
+
+    private fun applyFaceDifference(
+        base: CellStyle,
+        identityIndex: Int,
+        state: Int,
+        diffType: DifferenceType,
+        random: Random
+    ): CellStyle = when (diffType) {
+        DifferenceType.FACE_IDENTITY -> {
+            var otherIndex = FaceCatalog.identities.indices.random(random)
+            var guard = 0
+            while (otherIndex == identityIndex && guard < 10) {
+                otherIndex = FaceCatalog.identities.indices.random(random)
+                guard++
+            }
+            base.copy(faceDrawableRes = FaceCatalog.drawableFor(otherIndex, random.nextInt(2)))
+        }
+        DifferenceType.FACE_TRANSFORM -> when (random.nextInt(5)) {
+            0 -> base.copy(rotationDeg = 90f)
+            1 -> base.copy(rotationDeg = 180f)
+            2 -> base.copy(rotationDeg = 270f)
+            3 -> base.copy(flipX = true)
+            else -> base.copy(flipY = true)
+        }
+        DifferenceType.FACE_EXPRESSION -> base.copy(faceDrawableRes = FaceCatalog.drawableFor(identityIndex, 1 - state))
+        else -> base
     }
 
     private fun pickRotation(shape: ShapeKind?, tier: Int, random: Random): Float {
