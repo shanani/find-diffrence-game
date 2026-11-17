@@ -15,6 +15,8 @@ import com.oddduel.game.ui.screens.tournament.RoundResultScreen
 
 private enum class Phase { SETUP, PLAYING, RESULT }
 
+private data class QuickPlayResult(val winner: PlayerProfile, val leftScore: Int, val rightScore: Int, val wonByResponseTime: Boolean)
+
 /**
  * No-tournament duel: pick who's playing (a saved player or a guest on each side,
  * "guest mode" needing no setup at all), play one round, see the result, and either
@@ -25,7 +27,7 @@ fun QuickPlayScreen(settings: GameSettings, audio: GameAudio, pauseController: G
     var phase by remember { mutableStateOf(Phase.SETUP) }
     var leftProfile by remember { mutableStateOf<PlayerProfile?>(null) }
     var rightProfile by remember { mutableStateOf<PlayerProfile?>(null) }
-    var result by remember { mutableStateOf<Triple<PlayerProfile, Int, Int>?>(null) }
+    var result by remember { mutableStateOf<QuickPlayResult?>(null) }
     var matchNumber by remember { mutableIntStateOf(0) }
 
     when (phase) {
@@ -53,8 +55,8 @@ fun QuickPlayScreen(settings: GameSettings, audio: GameAudio, pauseController: G
                     pauseController = pauseController,
                     matchKey = "quick_play_$matchNumber",
                     onExitRequested = onExit,
-                    onRoundFinished = { winner, leftScore, rightScore ->
-                        result = Triple(winner, leftScore, rightScore)
+                    onRoundFinished = { winner, leftScore, rightScore, wonByResponseTime ->
+                        result = QuickPlayResult(winner, leftScore, rightScore, wonByResponseTime)
                         phase = Phase.RESULT
                     }
                 )
@@ -67,9 +69,10 @@ fun QuickPlayScreen(settings: GameSettings, audio: GameAudio, pauseController: G
                 LaunchedEffect(Unit) { onExit() }
             } else {
                 RoundResultScreen(
-                    winner = finalResult.first,
-                    leftScore = finalResult.second,
-                    rightScore = finalResult.third,
+                    winner = finalResult.winner,
+                    leftScore = finalResult.leftScore,
+                    rightScore = finalResult.rightScore,
+                    wonByResponseTime = finalResult.wonByResponseTime,
                     primaryLabel = "Rematch",
                     onPrimary = {
                         matchNumber += 1

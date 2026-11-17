@@ -52,7 +52,6 @@ import com.oddduel.game.ui.components.OddGrid
 import com.oddduel.game.ui.components.TrackGameActive
 import com.oddduel.game.ui.components.toColor
 import com.oddduel.game.ui.theme.BgPanel
-import com.oddduel.game.ui.theme.NeonYellow
 import com.oddduel.game.ui.theme.PlayerLeftAccent
 import com.oddduel.game.ui.theme.PlayerRightAccent
 
@@ -65,7 +64,7 @@ fun GameScreen(
     pauseController: GamePauseController,
     matchKey: String = "${leftProfile.key}_vs_${rightProfile.key}",
     onExitRequested: () -> Unit,
-    onRoundFinished: (winner: PlayerProfile, leftScore: Int, rightScore: Int) -> Unit
+    onRoundFinished: (winner: PlayerProfile, leftScore: Int, rightScore: Int, wonByResponseTime: Boolean) -> Unit
 ) {
     // Keying by match identity is essential: without it Compose's viewModel()
     // would reuse the SAME DuelViewModel (and its already-"finished" state) for
@@ -93,7 +92,7 @@ fun GameScreen(
             if (rightProfile is PlayerProfile.Registered) {
                 userRepository.recordResult(rightProfile.user, viewModel.rightScore, w == rightProfile)
             }
-            onRoundFinished(w, viewModel.leftScore, viewModel.rightScore)
+            onRoundFinished(w, viewModel.leftScore, viewModel.rightScore, viewModel.wonByResponseTime)
         }
     }
 
@@ -117,10 +116,6 @@ fun GameScreen(
             ) {
                 IconButton(onClick = { showExitConfirm = true }) {
                     Icon(Icons.Filled.Home, contentDescription = "Exit match", tint = Color.White.copy(alpha = 0.8f))
-                }
-                if (viewModel.isOvertime) {
-                    Text("OVERTIME", color = NeonYellow, fontWeight = FontWeight.Black, fontSize = 12.sp)
-                    Spacer(Modifier.size(6.dp))
                 }
                 FancyCountdownTimer(secondsLeft = viewModel.timeLeft, totalSeconds = viewModel.totalTime)
                 Spacer(Modifier.size(8.dp))

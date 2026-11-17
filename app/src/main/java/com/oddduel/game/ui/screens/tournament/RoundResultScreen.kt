@@ -35,6 +35,7 @@ import com.oddduel.game.ui.components.rememberFitScale
 import com.oddduel.game.ui.components.scaledBy
 import com.oddduel.game.ui.components.toColor
 import com.oddduel.game.ui.theme.GameButtonFont
+import com.oddduel.game.ui.theme.NeonCyan
 import com.oddduel.game.ui.theme.NeonYellow
 import com.oddduel.game.ui.theme.rememberAuroraBrush
 
@@ -52,7 +53,8 @@ fun RoundResultScreen(
     onPrimary: () -> Unit,
     secondaryLabel: String? = null,
     onSecondary: (() -> Unit)? = null,
-    headline: String = "ROUND WINNER"
+    headline: String = "ROUND WINNER",
+    wonByResponseTime: Boolean = false
 ) {
     val avatar = AvatarCatalog.get(winner.avatarIndex)
     val infinite = rememberInfiniteTransition(label = "trophyBounce")
@@ -80,6 +82,15 @@ fun RoundResultScreen(
             ) { Text(avatar.emoji, fontSize = 54.sp.scaledBy(scale)) }
             Text(winner.displayName, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 26.sp.scaledBy(scale))
             Text("$leftScore  -  $rightScore", color = Color.White.copy(alpha = 0.7f), fontSize = 18.sp.scaledBy(scale))
+            if (wonByResponseTime) {
+                Spacer(Modifier.size(4.dp.scaledBy(scale)))
+                Text(
+                    "⚡ Tied on points - won on faster overall response time",
+                    color = NeonCyan,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp.scaledBy(scale)
+                )
+            }
             Spacer(Modifier.size(24.dp.scaledBy(scale)))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp.scaledBy(scale))) {
                 Button(onClick = onPrimary) { Text(primaryLabel) }

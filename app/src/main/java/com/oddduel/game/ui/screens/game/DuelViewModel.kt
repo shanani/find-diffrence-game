@@ -32,8 +32,6 @@ class DuelViewModel(
 ) : ViewModel() {
 
     companion object {
-        private const val MAX_OVERTIME_ROUNDS = 3
-
         fun factoryFor(
             settings: GameSettings,
             left: PlayerProfile,
@@ -51,16 +49,25 @@ class DuelViewModel(
     var leftChallenge by mutableStateOf<Challenge?>(null); private set
     var rightChallenge by mutableStateOf<Challenge?>(null); private set
     var timeLeft by mutableStateOf(settings.roundTimeoutSeconds); private set
-    var totalTime by mutableStateOf(settings.roundTimeoutSeconds); private set
-    var isOvertime by mutableStateOf(false); private set
+    val totalTime = settings.roundTimeoutSeconds
     var finished by mutableStateOf(false); private set
     var winner by mutableStateOf<PlayerProfile?>(null); private set
+    // True when the match ended with the score tied and the winner was decided by who
+    // answered correctly faster overall, not by points - the UI shows this distinctly
+    // rather than presenting it as an ordinary score win.
+    var wonByResponseTime by mutableStateOf(false); private set
     var leftWrongPulse by mutableStateOf(0); private set
     var rightWrongPulse by mutableStateOf(0); private set
 
     private var leftCorrect = 0
     private var rightCorrect = 0
-    private var overtimeRoundsPlayed = 0
+
+    // Sum of "time from when a challenge appeared to the correct tap" across every
+    // correctly-solved challenge this match - the tie-break signal when scores are equal.
+    private var leftTotalResponseMs = 0L
+    private var rightTotalResponseMs = 0L
+    private var leftChallengeStartMs = 0L
+    private var rightChallengeStartMs = 0L
 
     private val leftCache = ChallengeCache(settings.gridRows, settings.gridCols, { 1 + leftCorrect / 5 }, viewModelScope)
     private val rightCache = ChallengeCache(settings.gridRows, settings.gridCols, { 1 + rightCorrect / 5 }, viewModelScope)
@@ -69,6 +76,9 @@ class DuelViewModel(
         viewModelScope.launch {
             leftChallenge = leftCache.take()
             rightChallenge = rightCache.take()
+            val now = System.currentTimeMillis()
+            leftChallengeStartMs = now
+            rightChallengeStartMs = now
             audio.play(Sfx.ROUND_START)
             runTimer()
         }
@@ -80,19 +90,7 @@ class DuelViewModel(
             if (finished) return
             timeLeft -= 1
             if (timeLeft in 1..3) audio.play(Sfx.TICK)
-            if (timeLeft <= 0) {
-                // A tie restarts the 12s overtime clock, but only up to MAX_OVERTIME_ROUNDS
-                // times - two evenly matched players (or nobody tapping either side at all)
-                // could otherwise stay exactly tied forever, looping this reset endlessly.
-                if (leftScore == rightScore && overtimeRoundsPlayed < MAX_OVERTIME_ROUNDS) {
-                    overtimeRoundsPlayed += 1
-                    isOvertime = true
-                    totalTime = 12
-                    timeLeft = 12
-                } else {
-                    endRound()
-                }
-            }
+            if (timeLeft <= 0) endRound()
         }
     }
 
@@ -102,17 +100,27 @@ class DuelViewModel(
         if (index == challenge.oddIndex) {
             audio.play(Sfx.CORRECT)
             audio.play(Sfx.COIN)
+            val now = System.currentTimeMillis()
             if (side == PlayerSide.LEFT) {
                 leftScore += 10
                 leftCorrect += 1
+                leftTotalResponseMs += now - leftChallengeStartMs
             } else {
                 rightScore += 10
                 rightCorrect += 1
+                rightTotalResponseMs += now - rightChallengeStartMs
             }
             viewModelScope.launch {
                 val cache = if (side == PlayerSide.LEFT) leftCache else rightCache
                 val next = cache.take()
-                if (side == PlayerSide.LEFT) leftChallenge = next else rightChallenge = next
+                val startedAt = System.currentTimeMillis()
+                if (side == PlayerSide.LEFT) {
+                    leftChallenge = next
+                    leftChallengeStartMs = startedAt
+                } else {
+                    rightChallenge = next
+                    rightChallengeStartMs = startedAt
+                }
             }
         } else {
             audio.play(Sfx.WRONG)
@@ -122,13 +130,18 @@ class DuelViewModel(
 
     private fun endRound() {
         finished = true
-        val w = when {
-            leftScore > rightScore -> leftProfile
-            rightScore > leftScore -> rightProfile
-            // Overtime's round cap was hit still tied - a true coin flip, not a bias to one side.
-            else -> if (kotlin.random.Random.nextBoolean()) leftProfile else rightProfile
+        if (leftScore != rightScore) {
+            winner = if (leftScore > rightScore) leftProfile else rightProfile
+        } else {
+            wonByResponseTime = true
+            winner = when {
+                leftTotalResponseMs < rightTotalResponseMs -> leftProfile
+                rightTotalResponseMs < leftTotalResponseMs -> rightProfile
+                // Neither side ever solved one correctly (or, vanishingly rarely, their
+                // cumulative times matched exactly too) - nothing left to break the tie on.
+                else -> if (kotlin.random.Random.nextBoolean()) leftProfile else rightProfile
+            }
         }
-        winner = w
         audio.play(Sfx.VICTORY)
     }
 }

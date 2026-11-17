@@ -15,6 +15,8 @@ import com.oddduel.game.ui.screens.game.GameScreen
 
 private enum class Phase { SETUP, PLAYING, RESULT, BRACKET }
 
+private data class TournamentRoundResult(val winner: PlayerProfile, val leftScore: Int, val rightScore: Int, val wonByResponseTime: Boolean)
+
 /**
  * Owns the whole tournament lifecycle in one place: build the roster, play each ready
  * bracket match as a normal timed duel, show the round winner, and repeat until a
@@ -31,7 +33,7 @@ fun TournamentScreen(
     onExit: () -> Unit
 ) {
     var phase by remember { mutableStateOf(Phase.SETUP) }
-    var lastResult by remember { mutableStateOf<Triple<PlayerProfile, Int, Int>?>(null) }
+    var lastResult by remember { mutableStateOf<TournamentRoundResult?>(null) }
     val version = tournamentViewModel.version // read to subscribe to bracket mutations
 
     when (phase) {
@@ -59,9 +61,9 @@ fun TournamentScreen(
                     pauseController = pauseController,
                     matchKey = "${match.round}_${match.index}",
                     onExitRequested = onExit,
-                    onRoundFinished = { winner, leftScore, rightScore ->
+                    onRoundFinished = { winner, leftScore, rightScore, wonByResponseTime ->
                         tournamentViewModel.recordResult(match.round, match.index, winner, leftScore, rightScore)
-                        lastResult = Triple(winner, leftScore, rightScore)
+                        lastResult = TournamentRoundResult(winner, leftScore, rightScore, wonByResponseTime)
                         phase = if (tournamentViewModel.tournament?.champion != null) Phase.BRACKET else Phase.RESULT
                     }
                 )
@@ -75,9 +77,10 @@ fun TournamentScreen(
                 LaunchedEffect(Unit) { onExit() }
             } else {
                 RoundResultScreen(
-                    winner = result.first,
-                    leftScore = result.second,
-                    rightScore = result.third,
+                    winner = result.winner,
+                    leftScore = result.leftScore,
+                    rightScore = result.rightScore,
+                    wonByResponseTime = result.wonByResponseTime,
                     primaryLabel = "Next Round",
                     onPrimary = { phase = Phase.PLAYING },
                     secondaryLabel = "View Bracket",
