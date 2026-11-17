@@ -1,5 +1,6 @@
 package com.oddduel.game.engine
 
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 /**
@@ -257,13 +258,24 @@ object ChallengeGenerator {
         return if (random.nextBoolean()) 1f + delta else 1f - delta
     }
 
+    // Below this Euclidean RGB distance, two palette colors read as the same color on a
+    // real screen (e.g. the palette's two near-duplicate cyans are only 4 apart) - picking
+    // one as the "different" color would make the odd cell invisible. 80 is comfortably
+    // under every palette entry's own hue-neighbor distance, so this can never starve.
+    private const val MIN_COLOR_DISTANCE = 80.0
+
+    private fun colorDistance(a: Long, b: Long): Double {
+        val dr = ((a shr 16) and 0xFFL) - ((b shr 16) and 0xFFL)
+        val dg = ((a shr 8) and 0xFFL) - ((b shr 8) and 0xFFL)
+        val db = (a and 0xFFL) - (b and 0xFFL)
+        return sqrt((dr * dr + dg * dg + db * db).toDouble())
+    }
+
     private fun pickDifferentColor(current: Long, random: Random): Long {
-        var next = GlyphPools.palette.random(random)
-        var guard = 0
-        while (next == current && guard < 10) {
-            next = GlyphPools.palette.random(random)
-            guard++
-        }
-        return next
+        val distinct = GlyphPools.palette.filter { colorDistance(it, current) >= MIN_COLOR_DISTANCE }
+        if (distinct.isNotEmpty()) return distinct.random(random)
+        // Should be unreachable given the palette's measured distances, but never fall back
+        // to a near-duplicate: pick whichever palette color is furthest from the current one.
+        return GlyphPools.palette.maxByOrNull { colorDistance(it, current) }!!
     }
 }

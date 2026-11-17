@@ -32,6 +32,8 @@ class DuelViewModel(
 ) : ViewModel() {
 
     companion object {
+        private const val MAX_OVERTIME_ROUNDS = 3
+
         fun factoryFor(
             settings: GameSettings,
             left: PlayerProfile,
@@ -58,6 +60,7 @@ class DuelViewModel(
 
     private var leftCorrect = 0
     private var rightCorrect = 0
+    private var overtimeRoundsPlayed = 0
 
     private val leftCache = ChallengeCache(settings.gridRows, settings.gridCols, { 1 + leftCorrect / 5 }, viewModelScope)
     private val rightCache = ChallengeCache(settings.gridRows, settings.gridCols, { 1 + rightCorrect / 5 }, viewModelScope)
@@ -78,7 +81,11 @@ class DuelViewModel(
             timeLeft -= 1
             if (timeLeft in 1..3) audio.play(Sfx.TICK)
             if (timeLeft <= 0) {
-                if (leftScore == rightScore) {
+                // A tie restarts the 12s overtime clock, but only up to MAX_OVERTIME_ROUNDS
+                // times - two evenly matched players (or nobody tapping either side at all)
+                // could otherwise stay exactly tied forever, looping this reset endlessly.
+                if (leftScore == rightScore && overtimeRoundsPlayed < MAX_OVERTIME_ROUNDS) {
+                    overtimeRoundsPlayed += 1
                     isOvertime = true
                     totalTime = 12
                     timeLeft = 12
@@ -118,7 +125,8 @@ class DuelViewModel(
         val w = when {
             leftScore > rightScore -> leftProfile
             rightScore > leftScore -> rightProfile
-            else -> leftProfile // extremely rare: overtime exhausted in a dead tie, pick arbitrarily
+            // Overtime's round cap was hit still tied - a true coin flip, not a bias to one side.
+            else -> if (kotlin.random.Random.nextBoolean()) leftProfile else rightProfile
         }
         winner = w
         audio.play(Sfx.VICTORY)
