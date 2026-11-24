@@ -1,6 +1,7 @@
 package com.oddduel.game.ui
 
 import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
@@ -273,6 +274,12 @@ fun OddDuelApp() {
         }
 
         if (pauseController.isPaused) {
+            // The overlay's own clickable scrim only absorbs touches, never the system/TV
+            // remote Back button - without this, Back falls straight through to whatever
+            // route is underneath and pops it while isPaused (an app-wide, route-agnostic
+            // flag) stays stuck true, leaving the overlay stranded on top of wherever that
+            // navigation lands instead of ever being resumed properly.
+            BackHandler { pauseController.resume(); audio.resumeAudio() }
             PauseOverlay(
                 audio = audio,
                 onResume = { pauseController.resume(); audio.resumeAudio() },

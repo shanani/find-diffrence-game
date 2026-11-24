@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,7 +39,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.cancel
 import com.oddduel.game.audio.GameAudio
 import com.oddduel.game.data.AvatarCatalog
 import com.oddduel.game.data.GameSettings
@@ -77,6 +80,18 @@ fun GameScreen(
     val context = LocalContext.current
     val userRepository = remember { UserRepository(context) }
     var showExitConfirm by remember { mutableStateOf(false) }
+
+    // Compose's keyed viewModel() never clears an old key's instance on its own - it
+    // just accumulates a new entry per matchKey in the same store, so without this a
+    // match left mid-round (exited, or superseded by Rematch) keeps its countdown and
+    // cache-refill coroutines running forever in the background: a "ghost" match whose
+    // timer reaching zero still fires TICK/VICTORY sound effects with no round on
+    // screen to show for it. Cancelling the ViewModel's own scope the instant this
+    // screen stops showing it (a new matchKey, or leaving the screen entirely) kills
+    // that ghost outright instead of leaking it for the rest of the session.
+    DisposableEffect(viewModel) {
+        onDispose { viewModel.viewModelScope.cancel() }
+    }
 
     // The pause button only shows, and ON_STOP only freezes the round, while a match
     // is actually in progress - not once it's finished, and not if the player leaves
